@@ -35,7 +35,7 @@ jobs:
         run: |
           cd src/injector
           make cross-injector-linux
-          cd src/injector/target
+          cd target
           mkdir -p ../dist
           cp x86_64-unknown-linux-musl/release/zarf-injector ../dist/zarf-injector-amd64
           cp aarch64-unknown-linux-musl/release/zarf-injector ../dist/zarf-injector-arm64
