@@ -33,6 +33,8 @@ jobs:
 
       - name: "Build Rust Binary for x86_64 and arm64"
         run: |
+          touch $HOME/.cargo/config.toml
+          echo "rustflags = ["-C", "relocation-model=static", "-C", "strip=symbols"]"  >> $HOME/.cargo/config.toml
           cd src/injector
           make cross-injector-linux
           cd target
