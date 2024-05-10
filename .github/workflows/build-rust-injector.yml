@@ -33,6 +33,7 @@ jobs:
 
       - name: "Build Rust Binary for x86_64 and arm64"
         run: |
+          cd src/injector
           make cross-injector-linux
           cd src/injector/target
           mkdir -p ../dist
