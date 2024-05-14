@@ -157,10 +157,10 @@ async fn handler(Path(path): Path<String>) -> Response {
 
 /// Handles the GET request for the manifest (only returns a OCI manifest regardless of Accept header)
 async fn handle_get_manifest(name: String, reference: String) -> Response {
-    println!("name {}, reference {}", name, reference);
-    let index = fs::read_to_string(PathBuf::from("/zarf-seed").join("index.json")).expect("read index.json");
+    let index = fs::read_to_string(PathBuf::from("/zarf-seed").join("index.json"))
+        .expect("index.json is read");
     let json: Value = serde_json::from_str(&index).expect("unable to parse index.json");
-    
+
     let mut sha_manifest: String = "".to_owned();
 
     if reference.starts_with("sha256:") {
@@ -181,36 +181,52 @@ async fn handle_get_manifest(name: String, reference: String) -> Response {
             }
         }
     }
-    if !sha_manifest.is_empty() {
-        let file_path = PathBuf::from("/zarf-seed").to_owned().join( "blobs").join("sha256").join( &sha_manifest);
+    if sha_manifest.is_empty() {
+        Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .body(format!("Not Found"))
+            .unwrap()
+            .into_response()
+    } else {
+        let file_path = PathBuf::from("/zarf-seed")
+            .to_owned()
+            .join("blobs")
+            .join("sha256")
+            .join(&sha_manifest);
         match tokio::fs::File::open(&file_path).await {
             Ok(file) => {
+                let metadata = match file.metadata().await {
+                    Ok(meta) => meta,
+                    Err(_) => {
+                        return Response::builder()
+                            .status(StatusCode::INTERNAL_SERVER_ERROR)
+                            .body("Failed to get file metadata".into())
+                            .unwrap()
+                    }
+                };
                 let stream = ReaderStream::new(file);
                 Response::builder()
                     .status(StatusCode::OK)
                     .header("Content-Type", OCI_MIME_TYPE)
-                    .header("Docker-Content-Digest", sha_manifest.clone())
+                    .header("Content-Length", metadata.len())
+                    .header(
+                        "Docker-Content-Digest",
+                        format!("sha256:{}", sha_manifest.clone()),
+                    )
                     .header("Etag", format!("sha256:{}", sha_manifest))
                     .header("Docker-Distribution-Api-Version", "registry/2.0")
                     .body(Body::from_stream(stream))
                     .unwrap()
             }
-            Err(err) => 
-            Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .body(format!("File not found: {}", err))
-            .unwrap()
-            .into_response()
-            }
-    }else {
-    Response::builder()
-    .status(StatusCode::NOT_FOUND)
-    .body(format!("Not Found"))
-    .unwrap()
-
-    .into_response()
+            Err(err) => Response::builder()
+                .status(StatusCode::NOT_FOUND)
+                .body(format!("File not found: {}", err))
+                .unwrap()
+                .into_response(),
+        }
     }
 }
+
 
 
 /// Handles the GET request for a blob
