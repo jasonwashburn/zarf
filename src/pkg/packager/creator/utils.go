@@ -18,7 +18,7 @@ import (
 	"github.com/defenseunicorns/zarf/src/types"
 )
 
-func ReadZarfYAMLWithValidate(pp *layout.PackagePaths, createOpts types.ZarfCreateOptions) (types.ZarfPackage, []string, error) {
+func readZarfYAMLWithValidate(pp *layout.PackagePaths, createOpts types.ZarfCreateOptions) (types.ZarfPackage, []string, error) {
 
 	validator, err := lint.Validate(createOpts)
 	if err != nil {

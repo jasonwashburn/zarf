@@ -254,6 +254,9 @@ var devLintCmd = &cobra.Command{
 		v := common.GetViper()
 		pkgConfig.CreateOpts.SetVariables = helpers.TransformAndMergeMap(
 			v.GetStringMapString(common.VPkgCreateSet), pkgConfig.CreateOpts.SetVariables, strings.ToUpper)
+		if err := os.Chdir(pkgConfig.CreateOpts.BaseDir); err != nil {
+			message.Fatal(err, err.Error())
+		}
 		validator, err := lint.Validate(pkgConfig.CreateOpts)
 		if err != nil {
 			message.Fatal(err, err.Error())

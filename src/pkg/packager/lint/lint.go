@@ -7,8 +7,6 @@ package lint
 import (
 	"embed"
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -36,16 +34,12 @@ func Validate(createOpts types.ZarfCreateOptions) (*Validator, error) {
 	validator := Validator{}
 	var err error
 
-	if err := utils.ReadYaml(filepath.Join(createOpts.BaseDir, layout.ZarfYAML), &validator.typedZarfPackage); err != nil {
+	if err := utils.ReadYaml(layout.ZarfYAML, &validator.typedZarfPackage); err != nil {
 		return nil, err
 	}
 
-	if err := utils.ReadYaml(filepath.Join(createOpts.BaseDir, layout.ZarfYAML), &validator.untypedZarfPackage); err != nil {
+	if err := utils.ReadYaml(layout.ZarfYAML, &validator.untypedZarfPackage); err != nil {
 		return nil, err
-	}
-
-	if err := os.Chdir(createOpts.BaseDir); err != nil {
-		return nil, fmt.Errorf("unable to access directory '%s': %w", createOpts.BaseDir, err)
 	}
 
 	validator.baseDir = createOpts.BaseDir
