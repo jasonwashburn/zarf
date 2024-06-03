@@ -49,7 +49,6 @@ func (vm validatorMessage) String() string {
 // Validator holds the warnings/errors and messaging that we get from validation
 type Validator struct {
 	findings           []validatorMessage
-	jsonSchema         []byte
 	typedZarfPackage   types.ZarfPackage
 	untypedZarfPackage interface{}
 	baseDir            string

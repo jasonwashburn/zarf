@@ -47,11 +47,12 @@ func Validate(createOpts types.ZarfCreateOptions) (*Validator, error) {
 	lintComponents(&validator, &createOpts)
 	lintPkg(&validator)
 
-	if validator.jsonSchema, err = getSchemaFile(); err != nil {
+	jsonSchema, err := getSchemaFile()
+	if err != nil {
 		return nil, err
 	}
 
-	if err = validateSchema(&validator); err != nil {
+	if err = validateSchema(&validator, jsonSchema); err != nil {
 		return nil, err
 	}
 
@@ -270,8 +271,8 @@ func makeFieldPathYqCompat(field string) string {
 	return fmt.Sprintf(".%s", wrappedField)
 }
 
-func validateSchema(validator *Validator) error {
-	schemaLoader := gojsonschema.NewBytesLoader(validator.jsonSchema)
+func validateSchema(validator *Validator, jsonSchema []byte) error {
+	schemaLoader := gojsonschema.NewBytesLoader(jsonSchema)
 	documentLoader := gojsonschema.NewGoLoader(validator.untypedZarfPackage)
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)

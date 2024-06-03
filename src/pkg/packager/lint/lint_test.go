@@ -33,6 +33,13 @@ components:
     path: 123123
 `
 
+const noCompPkg = `
+kind: ZarfInitConfig
+metadata:
+  name: init
+  description: Testing bad yaml
+`
+
 const goodZarfPackage = `
 x-name: &name good-zarf-package
 
@@ -70,20 +77,29 @@ func TestValidateSchema(t *testing.T) {
 
 	t.Run("validate schema success", func(t *testing.T) {
 		unmarshalledYaml := readAndUnmarshalYaml[interface{}](t, goodZarfPackage)
-		validator := Validator{untypedZarfPackage: unmarshalledYaml, jsonSchema: getZarfSchema(t)}
-		err := validateSchema(&validator)
+		validator := Validator{untypedZarfPackage: unmarshalledYaml}
+		err := validateSchema(&validator, getZarfSchema(t))
 		require.NoError(t, err)
 		require.Empty(t, validator.findings)
 	})
 
 	t.Run("validate schema fail", func(t *testing.T) {
 		unmarshalledYaml := readAndUnmarshalYaml[interface{}](t, badZarfPackage)
-		validator := Validator{untypedZarfPackage: unmarshalledYaml, jsonSchema: getZarfSchema(t)}
-		err := validateSchema(&validator)
+		validator := Validator{untypedZarfPackage: unmarshalledYaml}
+		err := validateSchema(&validator, getZarfSchema(t))
 		require.NoError(t, err)
 		config.NoColor = true
 		require.Equal(t, "Additional property not-path is not allowed", validator.findings[0].String())
 		require.Equal(t, "Invalid type. Expected: string, given: integer", validator.findings[1].String())
+	})
+
+	t.Run("validate schema fail", func(t *testing.T) {
+		unmarshalledYaml := readAndUnmarshalYaml[interface{}](t, noCompPkg)
+		validator := Validator{untypedZarfPackage: unmarshalledYaml}
+		err := validateSchema(&validator, getZarfSchema(t))
+		require.NoError(t, err)
+		config.NoColor = true
+		require.Equal(t, "components is required", validator.findings[0].String())
 	})
 
 	t.Run("Template in component import success", func(t *testing.T) {
