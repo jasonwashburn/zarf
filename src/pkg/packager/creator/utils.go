@@ -5,14 +5,32 @@
 package creator
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"runtime"
 	"time"
 
 	"github.com/defenseunicorns/zarf/src/config"
+	"github.com/defenseunicorns/zarf/src/pkg/layout"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/deprecated"
+	"github.com/defenseunicorns/zarf/src/pkg/packager/lint"
 	"github.com/defenseunicorns/zarf/src/types"
 )
+
+func ReadZarfYAMLWithValidate(pp *layout.PackagePaths, createOpts types.ZarfCreateOptions) (types.ZarfPackage, []string, error) {
+
+	validator, err := lint.Validate(createOpts)
+	if err != nil {
+		return types.ZarfPackage{}, nil, fmt.Errorf("unable to lint package: %w", err)
+	}
+	validator.PrintValidationTable(lint.CategoryError)
+	if validator.HasErrors() {
+		return types.ZarfPackage{}, nil, errors.New("errors during lint")
+	}
+
+	return pp.ReadZarfYAML()
+}
 
 // recordPackageMetadata records various package metadata during package create.
 func recordPackageMetadata(pkg *types.ZarfPackage, createOpts types.ZarfCreateOptions) error {

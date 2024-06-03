@@ -235,3 +235,40 @@ func TestValidateSchema(t *testing.T) {
 		}
 	})
 }
+
+func TestValidator(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		validator Validator
+		severity  Category
+		expected  bool
+	}{
+		{
+			validator: Validator{findings: []validatorMessage{
+				{
+					category:    CategoryError,
+					description: "1 error",
+				},
+			}},
+			severity: CategoryError,
+			expected: true,
+		},
+		{
+			validator: Validator{findings: []validatorMessage{
+				{
+					category:    CategoryWarning,
+					description: "1 error",
+				},
+			}},
+			severity: CategoryError,
+			expected: false,
+		},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run("test has severity", func(t *testing.T) {
+			t.Parallel()
+			tc.validator.hasSeverity(CategoryError)
+		})
+	}
+}

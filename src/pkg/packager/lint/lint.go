@@ -17,7 +17,6 @@ import (
 	"github.com/defenseunicorns/zarf/src/config/lang"
 	"github.com/defenseunicorns/zarf/src/pkg/layout"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/composer"
-	"github.com/defenseunicorns/zarf/src/pkg/packager/creator"
 	"github.com/defenseunicorns/zarf/src/pkg/transform"
 	"github.com/defenseunicorns/zarf/src/pkg/utils"
 	"github.com/defenseunicorns/zarf/src/types"
@@ -52,6 +51,7 @@ func Validate(createOpts types.ZarfCreateOptions) (*Validator, error) {
 	validator.baseDir = createOpts.BaseDir
 
 	lintComponents(&validator, &createOpts)
+	lintPkg(&validator)
 
 	if validator.jsonSchema, err = getSchemaFile(); err != nil {
 		return nil, err
@@ -62,6 +62,24 @@ func Validate(createOpts types.ZarfCreateOptions) (*Validator, error) {
 	}
 
 	return &validator, nil
+}
+
+func lintPkg(validator *Validator) {
+	var errs []string
+	err := validator.typedZarfPackage.Validate()
+
+	if err != nil {
+		errs = strings.Split(err.Error(), "\n")
+	}
+
+	for _, err := range errs {
+		validator.addError(validatorMessage{
+			description:    err,
+			packageRelPath: ".",
+			packageName:    validator.typedZarfPackage.Metadata.Name,
+		})
+
+	}
 }
 
 func lintComponents(validator *Validator, createOpts *types.ZarfCreateOptions) {
@@ -104,14 +122,6 @@ func lintComponents(validator *Validator, createOpts *types.ZarfCreateOptions) {
 }
 
 func fillComponentTemplate(validator *Validator, node *composer.Node, createOpts *types.ZarfCreateOptions) {
-	err := creator.ReloadComponentTemplate(&node.ZarfComponent)
-	if err != nil {
-		validator.addWarning(validatorMessage{
-			description:    err.Error(),
-			packageRelPath: node.ImportLocation(),
-			packageName:    node.OriginalPackageName(),
-		})
-	}
 	templateMap := map[string]string{}
 
 	setVarsAndWarn := func(templatePrefix string, deprecated bool) {
