@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/defenseunicorns/zarf/src/config"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/composer"
 	"github.com/defenseunicorns/zarf/src/types"
 	goyaml "github.com/goccy/go-yaml"
@@ -21,7 +20,7 @@ import (
 const badZarfPackage = `
 kind: ZarfInitConfig
 metadata:
-  name: init
+  name: invalid-name
   description: Testing bad yaml
 
 components:
@@ -65,7 +64,9 @@ func readAndUnmarshalYaml[T interface{}](t *testing.T, yamlString string) T {
 	return unmarshalledYaml
 }
 
-func TestValidateSchema(t *testing.T) {
+//TODO t.parallel everything
+
+func TestValidateSchema2(t *testing.T) {
 	getZarfSchema := func(t *testing.T) []byte {
 		t.Helper()
 		file, err := os.ReadFile("../../../../zarf.schema.json")
@@ -73,6 +74,38 @@ func TestValidateSchema(t *testing.T) {
 			t.Errorf("error reading file: %v", err)
 		}
 		return file
+	}
+
+	tests := []struct {
+		name                  string
+		pkg                   types.ZarfPackage
+		expectedSchemaStrings []string
+	}{
+		{
+			name: "invalid package",
+			pkg: types.ZarfPackage{
+				Metadata: types.ZarfMetadata{
+					Name: "-invalid-name",
+				},
+				Components: []types.ZarfComponent{},
+			},
+			expectedSchemaStrings: []string{
+				"components: Array must have at least 1 items",
+				"metadata.name: Does not match pattern '^[a-z0-9][a-z0-9\\-]*$'",
+				"kind: kind must be one of the following: \"ZarfInitConfig\", \"ZarfPackageConfig\"",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			schemaErrs, err := runSchema(getZarfSchema(t), tt.pkg)
+			var schemaStrings []string
+			for _, schemaErr := range schemaErrs {
+				schemaStrings = append(schemaStrings, schemaErr.String())
+			}
+			require.NoError(t, err)
+			require.ElementsMatch(t, tt.expectedSchemaStrings, schemaStrings)
+		})
 	}
 
 	t.Run("validate schema success", func(t *testing.T) {
@@ -85,22 +118,22 @@ func TestValidateSchema(t *testing.T) {
 
 	t.Run("validate schema fail", func(t *testing.T) {
 		unmarshalledYaml := readAndUnmarshalYaml[interface{}](t, badZarfPackage)
-		validator := Validator{untypedZarfPackage: unmarshalledYaml}
-		err := validateSchema(&validator, getZarfSchema(t))
+		schemaErrs, err := runSchema(getZarfSchema(t), unmarshalledYaml)
 		require.NoError(t, err)
-		config.NoColor = true
-		require.Equal(t, "Additional property not-path is not allowed", validator.findings[0].String())
-		require.Equal(t, "Invalid type. Expected: string, given: integer", validator.findings[1].String())
-	})
+		var schemaStrings []string
+		for _, schemaErr := range schemaErrs {
+			schemaStrings = append(schemaStrings, schemaErr.String())
+		}
+		expectedSchemaStrings := []string{
+			"components.0.import: Additional property not-path is not allowed",
+			"components.1.import.path: Invalid type. Expected: string, given: integer",
+		}
 
-	t.Run("validate schema fail", func(t *testing.T) {
-		unmarshalledYaml := readAndUnmarshalYaml[interface{}](t, noCompPkg)
-		validator := Validator{untypedZarfPackage: unmarshalledYaml}
-		err := validateSchema(&validator, getZarfSchema(t))
-		require.NoError(t, err)
-		config.NoColor = true
-		require.Equal(t, "components is required", validator.findings[0].String())
+		require.Equal(t, expectedSchemaStrings, schemaStrings)
 	})
+}
+
+func TestValidateComponent(t *testing.T) {
 
 	t.Run("Template in component import success", func(t *testing.T) {
 		unmarshalledYaml := readAndUnmarshalYaml[types.ZarfPackage](t, goodZarfPackage)

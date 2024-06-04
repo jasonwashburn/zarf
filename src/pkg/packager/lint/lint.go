@@ -272,19 +272,17 @@ func makeFieldPathYqCompat(field string) string {
 }
 
 func validateSchema(validator *Validator, jsonSchema []byte) error {
-	schemaLoader := gojsonschema.NewBytesLoader(jsonSchema)
-	documentLoader := gojsonschema.NewGoLoader(validator.untypedZarfPackage)
 
-	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	schemaErrors, err := runSchema(jsonSchema, validator.untypedZarfPackage)
 	if err != nil {
 		return err
 	}
 
-	if !result.Valid() {
-		for _, desc := range result.Errors() {
+	if len(schemaErrors) != 0 {
+		for _, schemaErr := range schemaErrors {
 			validator.addError(validatorMessage{
-				yqPath:         makeFieldPathYqCompat(desc.Field()),
-				description:    desc.Description(),
+				yqPath:         makeFieldPathYqCompat(schemaErr.Field()),
+				description:    schemaErr.Description(),
 				packageRelPath: ".",
 				packageName:    validator.typedZarfPackage.Metadata.Name,
 			})
@@ -292,4 +290,19 @@ func validateSchema(validator *Validator, jsonSchema []byte) error {
 	}
 
 	return err
+}
+
+func runSchema(jsonSchema []byte, pkg interface{}) ([]gojsonschema.ResultError, error) {
+	schemaLoader := gojsonschema.NewBytesLoader(jsonSchema)
+	documentLoader := gojsonschema.NewGoLoader(pkg)
+
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	if err != nil {
+		return nil, err
+	}
+
+	if !result.Valid() {
+		return result.Errors(), nil
+	}
+	return nil, nil
 }

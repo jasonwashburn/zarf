@@ -39,7 +39,7 @@ func (c Category) String() string {
 	return ""
 }
 
-func (vm validatorMessage) String() string {
+func (vm validatorMessage) Description() string {
 	if vm.item != "" {
 		vm.item = fmt.Sprintf(" - %s", vm.item)
 	}
@@ -97,7 +97,7 @@ func (v Validator) PrintValidationTable(severity Category) {
 		lintData := [][]string{}
 		for _, finding := range findings {
 			if finding.category <= severity {
-				lintData = append(lintData, []string{finding.category.String(), finding.getPath(), finding.String()})
+				lintData = append(lintData, []string{finding.category.String(), finding.getPath(), finding.Description()})
 			}
 		}
 		message.Notef("Linting package %q at %s", findings[0].packageName, v.packageRelPathToUser(findings[0]))
