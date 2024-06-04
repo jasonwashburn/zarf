@@ -87,23 +87,45 @@ func TestValidateSchema(t *testing.T) {
 			expectedSchemaStrings: nil,
 		},
 		{
+			name: "no comp or kind",
+			pkg: types.ZarfPackage{
+				Metadata: types.ZarfMetadata{
+					Name: "no-comp-or-kind",
+				},
+				Components: []types.ZarfComponent{},
+			},
+			expectedSchemaStrings: []string{
+				"kind: kind must be one of the following: \"ZarfInitConfig\", \"ZarfPackageConfig\"",
+				"components: Array must have at least 1 items",
+			},
+		},
+		{
 			name: "invalid package",
 			pkg: types.ZarfPackage{
+				Kind: types.ZarfInitConfig,
 				Metadata: types.ZarfMetadata{
 					Name: "-invalid-name",
 				},
-				Components: []types.ZarfComponent{},
+				Components: []types.ZarfComponent{
+					{
+						Name: "invalid-name",
+					},
+				},
 				Variables: []variables.InteractiveVariable{
 					{
 						Variable: variables.Variable{Name: "not_uppercase"},
 					},
 				},
+				Constants: []variables.Constant{
+					{
+						Name: "not_uppercase",
+					},
+				},
 			},
 			expectedSchemaStrings: []string{
-				"components: Array must have at least 1 items",
 				"metadata.name: Does not match pattern '^[a-z0-9][a-z0-9\\-]*$'",
-				"kind: kind must be one of the following: \"ZarfInitConfig\", \"ZarfPackageConfig\"",
 				"variables.0.name: Does not match pattern '^[A-Z0-9_]+$'",
+				"constants.0.name: Does not match pattern '^[A-Z0-9_]+$'",
 			},
 		},
 	}

@@ -43,11 +43,11 @@ func TestZarfPackageValidate(t *testing.T) {
 			pkg: ZarfPackage{
 				Kind: ZarfPackageConfig,
 				Metadata: ZarfMetadata{
-					Name: "-invalid-package",
+					Name: "invalid-package",
 				},
 				Components: []ZarfComponent{
 					{
-						Name: "-invalid",
+						Name: "invalid",
 						Only: ZarfComponentOnlyTarget{
 							LocalOS: "unsupportedOS",
 						},
@@ -86,9 +86,6 @@ func TestZarfPackageValidate(t *testing.T) {
 				},
 				Constants: []variables.Constant{
 					{
-						Name: "not_uppercase",
-					},
-					{
 						Name:    "BAD",
 						Pattern: "^good_val$",
 						Value:   "bad_val",
@@ -96,11 +93,9 @@ func TestZarfPackageValidate(t *testing.T) {
 				},
 			},
 			expectedErrs: []string{
-				fmt.Errorf(lang.PkgValidateErrConstant, fmt.Errorf(lang.PkgValidateErrPkgConstantName, "not_uppercase")).Error(),
 				fmt.Errorf(lang.PkgValidateErrConstant, fmt.Errorf(lang.PkgValidateErrPkgConstantPattern, "BAD", "^good_val$")).Error(),
-				fmt.Sprintf(lang.PkgValidateErrComponentName, "-invalid"),
-				fmt.Sprintf(lang.PkgValidateErrComponentLocalOS, "-invalid", "unsupportedOS", supportedOS),
-				fmt.Sprintf(lang.PkgValidateErrComponentReqDefault, "-invalid"),
+				fmt.Sprintf(lang.PkgValidateErrComponentLocalOS, "invalid", "unsupportedOS", supportedOS),
+				fmt.Sprintf(lang.PkgValidateErrComponentReqDefault, "invalid"),
 				fmt.Sprintf(lang.PkgValidateErrChartNameNotUnique, "chart1"),
 				fmt.Sprintf(lang.PkgValidateErrManifestNameNotUnique, "manifest1"),
 				fmt.Sprintf(lang.PkgValidateErrComponentReqGrouped, "required-in-group"),

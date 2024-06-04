@@ -81,10 +81,6 @@ func (pkg ZarfPackage) Validate() error {
 		}
 		uniqueComponentNames[component.Name] = true
 
-		if !IsLowercaseNumberHyphenNoStartHyphen(component.Name) {
-			err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrComponentName, component.Name))
-		}
-
 		if !slices.Contains(supportedOS, component.Only.LocalOS) {
 			err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrComponentLocalOS, component.Name, component.Only.LocalOS, supportedOS))
 		}

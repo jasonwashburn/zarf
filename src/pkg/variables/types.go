@@ -70,11 +70,6 @@ func (v Variable) Validate() error {
 
 // Validate runs all validation checks on a package constant.
 func (c Constant) Validate() error {
-	// ensure the constant name is only capitals and underscores
-	if !IsUppercaseNumberUnderscore(c.Name) {
-		return fmt.Errorf(lang.PkgValidateErrPkgConstantName, c.Name)
-	}
-
 	if !regexp.MustCompile(c.Pattern).MatchString(c.Value) {
 		return fmt.Errorf(lang.PkgValidateErrPkgConstantPattern, c.Name, c.Pattern)
 	}
