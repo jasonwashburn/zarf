@@ -84,11 +84,6 @@ func TestZarfPackageValidate(t *testing.T) {
 						Name: "duplicate",
 					},
 				},
-				Variables: []variables.InteractiveVariable{
-					{
-						Variable: variables.Variable{Name: "not_uppercase"},
-					},
-				},
 				Constants: []variables.Constant{
 					{
 						Name: "not_uppercase",
@@ -101,8 +96,6 @@ func TestZarfPackageValidate(t *testing.T) {
 				},
 			},
 			expectedErrs: []string{
-				fmt.Sprintf(lang.PkgValidateErrPkgName, "-invalid-package"),
-				fmt.Errorf(lang.PkgValidateErrVariable, fmt.Errorf(lang.PkgValidateMustBeUppercase, "not_uppercase")).Error(),
 				fmt.Errorf(lang.PkgValidateErrConstant, fmt.Errorf(lang.PkgValidateErrPkgConstantName, "not_uppercase")).Error(),
 				fmt.Errorf(lang.PkgValidateErrConstant, fmt.Errorf(lang.PkgValidateErrPkgConstantPattern, "BAD", "^good_val$")).Error(),
 				fmt.Sprintf(lang.PkgValidateErrComponentName, "-invalid"),

@@ -22,7 +22,6 @@ const (
 
 var (
 	// IsLowercaseNumberHyphenNoStartHyphen is a regex for lowercase, numbers and hyphens that cannot start with a hyphen.
-	// https://regex101.com/r/FLdG9G/2
 	IsLowercaseNumberHyphenNoStartHyphen = regexp.MustCompile(`^[a-z0-9][a-z0-9\-]*$`).MatchString
 	// Define allowed OS, an empty string means it is allowed on all operating systems
 	// same as enums on ZarfComponentOnlyTarget
@@ -43,16 +42,6 @@ func (pkg ZarfPackage) Validate() error {
 	var err error
 	if pkg.Kind == ZarfInitConfig && pkg.Metadata.YOLO {
 		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrInitNoYOLO))
-	}
-
-	if !IsLowercaseNumberHyphenNoStartHyphen(pkg.Metadata.Name) {
-		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrPkgName, pkg.Metadata.Name))
-	}
-
-	for _, variable := range pkg.Variables {
-		if varErr := variable.Validate(); varErr != nil {
-			err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrVariable, varErr))
-		}
 	}
 
 	for _, constant := range pkg.Constants {

@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/defenseunicorns/zarf/src/pkg/packager/composer"
+	"github.com/defenseunicorns/zarf/src/pkg/variables"
 	"github.com/defenseunicorns/zarf/src/types"
 	goyaml "github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/require"
@@ -55,7 +56,7 @@ func readAndUnmarshalYaml[T interface{}](t *testing.T, yamlString string) T {
 }
 
 // TODO t.parallel everything
-func TestValidateSchema2(t *testing.T) {
+func TestValidateSchema(t *testing.T) {
 	getZarfSchema := func(t *testing.T) []byte {
 		t.Helper()
 		file, err := os.ReadFile("../../../../zarf.schema.json")
@@ -92,11 +93,17 @@ func TestValidateSchema2(t *testing.T) {
 					Name: "-invalid-name",
 				},
 				Components: []types.ZarfComponent{},
+				Variables: []variables.InteractiveVariable{
+					{
+						Variable: variables.Variable{Name: "not_uppercase"},
+					},
+				},
 			},
 			expectedSchemaStrings: []string{
 				"components: Array must have at least 1 items",
 				"metadata.name: Does not match pattern '^[a-z0-9][a-z0-9\\-]*$'",
 				"kind: kind must be one of the following: \"ZarfInitConfig\", \"ZarfPackageConfig\"",
+				"variables.0.name: Does not match pattern '^[A-Z0-9_]+$'",
 			},
 		},
 	}

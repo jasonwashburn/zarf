@@ -720,7 +720,6 @@ const (
 	PkgValidateErrName                    = "invalid package name: %w"
 	PkgValidateErrPkgConstantName         = "constant name %q must be all uppercase and contain no special characters except _"
 	PkgValidateErrPkgConstantPattern      = "provided value for constant %q does not match pattern %q"
-	PkgValidateErrPkgName                 = "package name %q must be all lowercase and contain no special characters except '-' and cannot start with a '-'"
 	PkgValidateErrVariable                = "invalid package variable: %w"
 	PkgValidateErrYOLONoArch              = "cluster architecture not allowed in YOLO"
 	PkgValidateErrYOLONoDistro            = "cluster distros not allowed in YOLO"
