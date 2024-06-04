@@ -279,10 +279,6 @@ func (chart ZarfChart) Validate() error {
 func (manifest ZarfManifest) Validate() error {
 	var err error
 
-	if manifest.Name == "" {
-		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrManifestNameMissing))
-	}
-
 	if len(manifest.Name) > ZarfMaxChartNameLength {
 		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrManifestNameLength, manifest.Name, ZarfMaxChartNameLength))
 	}

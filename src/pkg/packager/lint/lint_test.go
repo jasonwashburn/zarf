@@ -32,6 +32,8 @@ components:
     path: 123123
   charts:
   - noWait: true
+  manifests:
+  - namespace: no-name-for-manifest
 `
 
 const goodZarfPackage = `
@@ -170,9 +172,10 @@ func TestValidateSchema(t *testing.T) {
 			"components.0.charts.0: name is required",
 			"components.0.charts.0: namespace is required",
 			"components.0.charts.0: version is required",
+			"components.0.manifests.0: name is required",
 		}
 
-		require.Equal(t, expectedSchemaStrings, schemaStrings)
+		require.ElementsMatch(t, expectedSchemaStrings, schemaStrings)
 	})
 }
 

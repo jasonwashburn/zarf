@@ -161,11 +161,6 @@ func TestValidateManifest(t *testing.T) {
 			expectedErrs: nil,
 		},
 		{
-			name:         "empty name",
-			manifest:     ZarfManifest{Name: "", Files: []string{"a-file"}},
-			expectedErrs: []string{lang.PkgValidateErrManifestNameMissing},
-		},
-		{
 			name:         "long name",
 			manifest:     ZarfManifest{Name: longName, Files: []string{"a-file"}},
 			expectedErrs: []string{fmt.Sprintf(lang.PkgValidateErrManifestNameLength, longName, ZarfMaxChartNameLength)},
@@ -201,12 +196,12 @@ func TestValidateChart(t *testing.T) {
 	}{
 		{
 			name:         "valid",
-			chart:        ZarfChart{Name: "chart1", Namespace: "whatever", URL: "http://whatever", Version: "v1.0.0"},
+			chart:        ZarfChart{Name: "chart1", URL: "http://whatever"},
 			expectedErrs: nil,
 		},
 		{
 			name:  "long name",
-			chart: ZarfChart{Name: longName, Namespace: "whatever", URL: "http://whatever", Version: "v1.0.0"},
+			chart: ZarfChart{Name: longName, URL: "http://whatever"},
 			expectedErrs: []string{
 				fmt.Sprintf(lang.PkgValidateErrChartName, longName, ZarfMaxChartNameLength),
 			},
@@ -220,7 +215,7 @@ func TestValidateChart(t *testing.T) {
 		},
 		{
 			name:  "both url and local path",
-			chart: ZarfChart{Name: "invalid", Namespace: "whatever", URL: "http://whatever", LocalPath: "wherever", Version: "v1.0.0"},
+			chart: ZarfChart{Name: "invalid", URL: "http://whatever", LocalPath: "wherever"},
 			expectedErrs: []string{
 				fmt.Sprintf(lang.PkgValidateErrChartURLOrPath, "invalid"),
 			},
