@@ -18,6 +18,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// When we want to test the absence of a field we can't do it through a struct
+// for non pointer fields since it will be auto initialized
 const badZarfPackage = `
 kind: ZarfInitConfig
 metadata:
@@ -28,6 +30,8 @@ components:
 - name: import-test
   import:
     path: 123123
+  charts:
+  - noWait: true
 `
 
 const goodZarfPackage = `
@@ -113,6 +117,14 @@ func TestValidateSchema(t *testing.T) {
 							LocalOS: "unsupportedOS",
 						},
 					},
+					{
+						Name: "invalid-name",
+						Charts: []types.ZarfChart{
+							{
+								NoWait: true,
+							},
+						},
+					},
 				},
 				Variables: []variables.InteractiveVariable{
 					{
@@ -155,6 +167,9 @@ func TestValidateSchema(t *testing.T) {
 		}
 		expectedSchemaStrings := []string{
 			"components.0.import.path: Invalid type. Expected: string, given: integer",
+			"components.0.charts.0: name is required",
+			"components.0.charts.0: namespace is required",
+			"components.0.charts.0: version is required",
 		}
 
 		require.Equal(t, expectedSchemaStrings, schemaStrings)

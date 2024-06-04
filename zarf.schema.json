@@ -383,6 +383,7 @@
       "type": "object",
       "required": [
         "name",
+        "version",
         "namespace"
       ],
       "patternProperties": {

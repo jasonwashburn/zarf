@@ -205,11 +205,6 @@ func TestValidateChart(t *testing.T) {
 			expectedErrs: nil,
 		},
 		{
-			name:         "empty name",
-			chart:        ZarfChart{Name: "", Namespace: "whatever", URL: "http://whatever", Version: "v1.0.0"},
-			expectedErrs: []string{lang.PkgValidateErrChartNameMissing},
-		},
-		{
 			name:  "long name",
 			chart: ZarfChart{Name: longName, Namespace: "whatever", URL: "http://whatever", Version: "v1.0.0"},
 			expectedErrs: []string{
@@ -220,9 +215,7 @@ func TestValidateChart(t *testing.T) {
 			name:  "no url or local path",
 			chart: ZarfChart{Name: "invalid"},
 			expectedErrs: []string{
-				fmt.Sprintf(lang.PkgValidateErrChartNamespaceMissing, "invalid"),
 				fmt.Sprintf(lang.PkgValidateErrChartURLOrPath, "invalid"),
-				fmt.Sprintf(lang.PkgValidateErrChartVersion, "invalid"),
 			},
 		},
 		{

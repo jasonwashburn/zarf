@@ -116,7 +116,7 @@ type ZarfFile struct {
 // ZarfChart defines a helm chart to be deployed.
 type ZarfChart struct {
 	Name        string              `json:"name" jsonschema:"description=The name of the chart within Zarf; note that this must be unique and does not need to be the same as the name in the chart repo"`
-	Version     string              `json:"version,omitempty" jsonschema:"description=The version of the chart to deploy; for git-based charts this is also the tag of the git repo by default (when not using the '@' syntax for 'repos')"`
+	Version     string              `json:"version" jsonschema:"description=The version of the chart to deploy; for git-based charts this is also the tag of the git repo by default (when not using the '@' syntax for 'repos')"`
 	URL         string              `json:"url,omitempty" jsonschema:"example=OCI registry: oci://ghcr.io/stefanprodan/charts/podinfo,example=helm chart repo: https://stefanprodan.github.io/podinfo,example=git repo: https://github.com/stefanprodan/podinfo (note the '@' syntax for 'repos' is supported here too)" jsonschema_description:"The URL of the OCI registry, chart repository, or git repo where the helm chart is stored"`
 	RepoName    string              `json:"repoName,omitempty" jsonschema:"description=The name of a chart within a Helm repository (defaults to the Zarf name of the chart)"`
 	GitPath     string              `json:"gitPath,omitempty" jsonschema:"description=(git repo only) The sub directory to the chart within a git repo,example=charts/your-chart"`

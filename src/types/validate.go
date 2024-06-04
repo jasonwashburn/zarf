@@ -259,16 +259,8 @@ func (action ZarfComponentAction) Validate() error {
 func (chart ZarfChart) Validate() error {
 	var err error
 
-	if chart.Name == "" {
-		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrChartNameMissing))
-	}
-
 	if len(chart.Name) > ZarfMaxChartNameLength {
 		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrChartName, chart.Name, ZarfMaxChartNameLength))
-	}
-
-	if chart.Namespace == "" {
-		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrChartNamespaceMissing, chart.Name))
 	}
 
 	// Must have a url or localPath (and not both)
@@ -278,10 +270,6 @@ func (chart ZarfChart) Validate() error {
 
 	if chart.URL == "" && chart.LocalPath == "" {
 		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrChartURLOrPath, chart.Name))
-	}
-
-	if chart.Version == "" {
-		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrChartVersion, chart.Name))
 	}
 
 	return err
