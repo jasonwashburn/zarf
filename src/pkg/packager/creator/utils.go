@@ -24,7 +24,7 @@ func readZarfYAMLWithValidate(pp *layout.PackagePaths, createOpts types.ZarfCrea
 	if err != nil {
 		return types.ZarfPackage{}, nil, fmt.Errorf("unable to lint package: %w", err)
 	}
-	validator.PrintValidationTable(lint.CategoryError)
+	validator.PrintErrorTable()
 	if validator.HasErrors() {
 		return types.ZarfPackage{}, nil, errors.New("errors during lint")
 	}

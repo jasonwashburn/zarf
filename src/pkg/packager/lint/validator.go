@@ -14,11 +14,11 @@ import (
 	"github.com/fatih/color"
 )
 
-type Category int
+type category int
 
 const (
-	CategoryError   Category = 1
-	CategoryWarning Category = 2
+	categoryError   category = 1
+	categoryWarning category = 2
 )
 
 type validatorMessage struct {
@@ -27,13 +27,13 @@ type validatorMessage struct {
 	item           string
 	packageRelPath string
 	packageName    string
-	category       Category
+	category       category
 }
 
-func (c Category) String() string {
-	if c == CategoryError {
+func (c category) String() string {
+	if c == categoryError {
 		return message.ColorWrap("Error", color.FgRed)
-	} else if c == CategoryWarning {
+	} else if c == categoryWarning {
 		return message.ColorWrap("Warning", color.FgYellow)
 	}
 	return ""
@@ -59,13 +59,13 @@ func (v Validator) DisplayFormattedMessage() {
 	if !v.hasFindings() {
 		message.Successf("0 findings for %q", v.typedZarfPackage.Metadata.Name)
 	}
-	v.PrintValidationTable(CategoryWarning)
+	v.printValidationTable(categoryWarning)
 }
 
 // IsSuccess returns true if there are not any errors
 func (v Validator) IsSuccess() bool {
 	for _, finding := range v.findings {
-		if finding.category == CategoryError {
+		if finding.category == categoryError {
 			return false
 		}
 	}
@@ -79,7 +79,12 @@ func (v Validator) packageRelPathToUser(vm validatorMessage) string {
 	return filepath.Join(v.baseDir, vm.packageRelPath)
 }
 
-func (v Validator) PrintValidationTable(severity Category) {
+// PrintErrorTable prints out a table with all the errors found by the validator
+func (v Validator) PrintErrorTable() {
+	v.printValidationTable(categoryError)
+}
+
+func (v Validator) printValidationTable(severity category) {
 	if !v.hasSeverity(severity) {
 		return
 	}
@@ -113,10 +118,10 @@ func (v Validator) getFormattedFindingCount(relPath string, packageName string) 
 		if finding.packageRelPath != relPath {
 			continue
 		}
-		if finding.category == CategoryWarning {
+		if finding.category == categoryWarning {
 			warningCount++
 		}
-		if finding.category == CategoryError {
+		if finding.category == categoryError {
 			errorCount++
 		}
 	}
@@ -143,7 +148,7 @@ func (v Validator) hasFindings() bool {
 	return len(v.findings) > 0
 }
 
-func (v Validator) hasSeverity(category Category) bool {
+func (v Validator) hasSeverity(category category) bool {
 	for _, finding := range v.findings {
 		if finding.category <= category {
 			return true
@@ -152,16 +157,17 @@ func (v Validator) hasSeverity(category Category) bool {
 	return false
 }
 
+// HasErrors returns true if the validator finds errors in the Zarf package
 func (v Validator) HasErrors() bool {
-	return v.hasSeverity(CategoryError)
+	return v.hasSeverity(categoryError)
 }
 
 func (v *Validator) addWarning(vmessage validatorMessage) {
-	vmessage.category = CategoryWarning
+	vmessage.category = categoryWarning
 	v.findings = helpers.Unique(append(v.findings, vmessage))
 }
 
 func (v *Validator) addError(vMessage validatorMessage) {
-	vMessage.category = CategoryError
+	vMessage.category = categoryError
 	v.findings = helpers.Unique(append(v.findings, vMessage))
 }

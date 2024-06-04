@@ -32,13 +32,6 @@ components:
     path: 123123
 `
 
-const noCompPkg = `
-kind: ZarfInitConfig
-metadata:
-  name: init
-  description: Testing bad yaml
-`
-
 const goodZarfPackage = `
 x-name: &name good-zarf-package
 
@@ -289,27 +282,27 @@ func TestValidator(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		validator Validator
-		severity  Category
+		severity  category
 		expected  bool
 	}{
 		{
 			validator: Validator{findings: []validatorMessage{
 				{
-					category:    CategoryError,
+					category:    categoryError,
 					description: "1 error",
 				},
 			}},
-			severity: CategoryError,
+			severity: categoryError,
 			expected: true,
 		},
 		{
 			validator: Validator{findings: []validatorMessage{
 				{
-					category:    CategoryWarning,
+					category:    categoryWarning,
 					description: "1 error",
 				},
 			}},
-			severity: CategoryError,
+			severity: categoryError,
 			expected: false,
 		},
 	}
@@ -317,7 +310,7 @@ func TestValidator(t *testing.T) {
 		tc := tc
 		t.Run("test has severity", func(t *testing.T) {
 			t.Parallel()
-			tc.validator.hasSeverity(CategoryError)
+			tc.validator.hasSeverity(categoryError)
 		})
 	}
 }
