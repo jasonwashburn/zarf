@@ -47,10 +47,7 @@ func TestZarfPackageValidate(t *testing.T) {
 				},
 				Components: []ZarfComponent{
 					{
-						Name: "invalid",
-						Only: ZarfComponentOnlyTarget{
-							LocalOS: "unsupportedOS",
-						},
+						Name:     "invalid",
 						Required: helpers.BoolPtr(true),
 						Default:  true,
 						Charts: []ZarfChart{
@@ -94,7 +91,6 @@ func TestZarfPackageValidate(t *testing.T) {
 			},
 			expectedErrs: []string{
 				fmt.Errorf(lang.PkgValidateErrConstant, fmt.Errorf(lang.PkgValidateErrPkgConstantPattern, "BAD", "^good_val$")).Error(),
-				fmt.Sprintf(lang.PkgValidateErrComponentLocalOS, "invalid", "unsupportedOS", supportedOS),
 				fmt.Sprintf(lang.PkgValidateErrComponentReqDefault, "invalid"),
 				fmt.Sprintf(lang.PkgValidateErrChartNameNotUnique, "chart1"),
 				fmt.Sprintf(lang.PkgValidateErrManifestNameNotUnique, "manifest1"),

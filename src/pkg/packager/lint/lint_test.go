@@ -109,6 +109,9 @@ func TestValidateSchema(t *testing.T) {
 				Components: []types.ZarfComponent{
 					{
 						Name: "invalid-name",
+						Only: types.ZarfComponentOnlyTarget{
+							LocalOS: "unsupportedOS",
+						},
 					},
 				},
 				Variables: []variables.InteractiveVariable{
@@ -126,6 +129,7 @@ func TestValidateSchema(t *testing.T) {
 				"metadata.name: Does not match pattern '^[a-z0-9][a-z0-9\\-]*$'",
 				"variables.0.name: Does not match pattern '^[A-Z0-9_]+$'",
 				"constants.0.name: Does not match pattern '^[A-Z0-9_]+$'",
+				"components.0.only.localOS: components.0.only.localOS must be one of the following: \"linux\", \"darwin\", \"windows\"",
 			},
 		},
 	}

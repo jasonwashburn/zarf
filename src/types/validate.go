@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
-	"slices"
 
 	"github.com/defenseunicorns/pkg/helpers"
 	"github.com/defenseunicorns/zarf/src/config/lang"
@@ -80,10 +79,6 @@ func (pkg ZarfPackage) Validate() error {
 			err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrComponentNameNotUnique, component.Name))
 		}
 		uniqueComponentNames[component.Name] = true
-
-		if !slices.Contains(supportedOS, component.Only.LocalOS) {
-			err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrComponentLocalOS, component.Name, component.Only.LocalOS, supportedOS))
-		}
 
 		if component.IsRequired() {
 			if component.Default {
