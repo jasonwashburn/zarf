@@ -73,7 +73,6 @@ func lintPkg(validator *Validator) {
 			packageRelPath: ".",
 			packageName:    validator.typedZarfPackage.Metadata.Name,
 		})
-
 	}
 }
 
