@@ -120,10 +120,23 @@ func TestValidateSchema(t *testing.T) {
 						},
 					},
 					{
-						Name: "invalid-name",
-						Charts: []types.ZarfChart{
-							{
-								NoWait: true,
+						Name: "actions",
+						Actions: types.ZarfComponentActions{
+							OnCreate: types.ZarfComponentActionSet{
+								Before: []types.ZarfComponentAction{
+									{
+										Cmd:          "echo 'invalid setVariable'",
+										SetVariables: []variables.Variable{{Name: "not_uppercase"}},
+									},
+								},
+							},
+							OnRemove: types.ZarfComponentActionSet{
+								OnSuccess: []types.ZarfComponentAction{
+									{
+										Cmd:          "echo 'invalid setVariable'",
+										SetVariables: []variables.Variable{{Name: "not_uppercase"}},
+									},
+								},
 							},
 						},
 					},
@@ -144,6 +157,8 @@ func TestValidateSchema(t *testing.T) {
 				"variables.0.name: Does not match pattern '^[A-Z0-9_]+$'",
 				"constants.0.name: Does not match pattern '^[A-Z0-9_]+$'",
 				"components.0.only.localOS: components.0.only.localOS must be one of the following: \"linux\", \"darwin\", \"windows\"",
+				"components.1.actions.onCreate.before.0.setVariables.0.name: Does not match pattern '^[A-Z0-9_]+$'",
+				"components.1.actions.onRemove.onSuccess.0.setVariables.0.name: Does not match pattern '^[A-Z0-9_]+$'",
 			},
 		},
 	}

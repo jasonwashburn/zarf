@@ -231,9 +231,6 @@ func (as ZarfComponentActionSet) Validate() error {
 // Validate runs all validation checks on an action.
 func (action ZarfComponentAction) Validate() error {
 	var err error
-	for _, variable := range action.SetVariables {
-		err = errors.Join(err, variable.Validate())
-	}
 
 	if action.Wait != nil {
 		// Validate only cmd or wait, not both
