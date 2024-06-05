@@ -53,10 +53,6 @@ func (p *Packager) DevDeploy(ctx context.Context) error {
 		return err
 	}
 
-	if err := p.cfg.Pkg.Validate(); err != nil {
-		return fmt.Errorf("unable to validate package: %w", err)
-	}
-
 	if err := p.populatePackageVariableConfig(); err != nil {
 		return fmt.Errorf("unable to set the active variables: %w", err)
 	}

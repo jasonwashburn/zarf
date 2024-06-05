@@ -69,7 +69,7 @@ func (sc *SkeletonCreator) LoadPackageDefinition(src *layout.PackagePaths) (pkg 
 		message.Warn(warning)
 	}
 
-	if err := pkg.Validate(); err != nil {
+	if err := lintPackage(sc.createOpts); err != nil {
 		return types.ZarfPackage{}, nil, err
 	}
 

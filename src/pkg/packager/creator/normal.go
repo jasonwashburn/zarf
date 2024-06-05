@@ -123,10 +123,6 @@ func (pc *PackageCreator) LoadPackageDefinition(src *layout.PackagePaths) (pkg t
 		}
 	}
 
-	if err := pkg.Validate(); err != nil {
-		return types.ZarfPackage{}, nil, err
-	}
-
 	return pkg, warnings, nil
 }
 
