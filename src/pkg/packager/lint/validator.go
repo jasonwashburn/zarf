@@ -89,11 +89,13 @@ func (v Validator) printValidationTable(severity category) {
 		return
 	}
 
+	v.findings = helpers.RemoveMatches(v.findings, func(finding validatorMessage) bool {
+		return finding.category > severity
+	})
+
 	mapOfFindingsByPath := make(map[string][]validatorMessage)
 	for _, finding := range v.findings {
-		if finding.category <= severity {
-			mapOfFindingsByPath[finding.packageRelPath] = append(mapOfFindingsByPath[finding.packageRelPath], finding)
-		}
+		mapOfFindingsByPath[finding.packageRelPath] = append(mapOfFindingsByPath[finding.packageRelPath], finding)
 	}
 
 	header := []string{"Type", "Path", "Message"}
@@ -101,9 +103,7 @@ func (v Validator) printValidationTable(severity category) {
 	for packageRelPath, findings := range mapOfFindingsByPath {
 		lintData := [][]string{}
 		for _, finding := range findings {
-			if finding.category <= severity {
-				lintData = append(lintData, []string{finding.category.String(), finding.getPath(), finding.Description()})
-			}
+			lintData = append(lintData, []string{finding.category.String(), finding.getPath(), finding.Description()})
 		}
 		message.Notef("Linting package %q at %s", findings[0].packageName, v.packageRelPathToUser(findings[0]))
 		message.Table(header, lintData)

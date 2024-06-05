@@ -91,10 +91,6 @@ func (pc *PackageCreator) LoadPackageDefinition(src *layout.PackagePaths) (pkg t
 		return types.ZarfPackage{}, nil, err
 	}
 
-	if err := lintPackage(pc.createOpts); err != nil {
-		return types.ZarfPackage{}, nil, err
-	}
-
 	// If we are creating a differential package, remove duplicate images and repos.
 	if pc.createOpts.DifferentialPackagePath != "" {
 		pkg.Build.Differential = true
@@ -121,6 +117,10 @@ func (pc *PackageCreator) LoadPackageDefinition(src *layout.PackagePaths) (pkg t
 		if err != nil {
 			return types.ZarfPackage{}, nil, err
 		}
+	}
+
+	if err := lintPackage(pc.createOpts); err != nil {
+		return types.ZarfPackage{}, nil, err
 	}
 
 	return pkg, warnings, nil
