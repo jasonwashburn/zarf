@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/defenseunicorns/zarf/src/pkg/layout"
+	"github.com/defenseunicorns/zarf/src/pkg/packager/lint"
 	"github.com/defenseunicorns/zarf/src/types"
 	"github.com/stretchr/testify/require"
 )
@@ -29,7 +30,7 @@ func TestSkeletonLoadPackageDefinition(t *testing.T) {
 		{
 			name:        "invalid package definition",
 			testDir:     "invalid",
-			expectedErr: "package must have at least 1 component",
+			expectedErr: "errors during lint",
 		},
 	}
 
@@ -37,6 +38,7 @@ func TestSkeletonLoadPackageDefinition(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			lint.ZarfSchema = &mockSchemaLoader{}
 
 			src := layout.New(filepath.Join("testdata", tt.testDir))
 			sc := NewSkeletonCreator(types.ZarfCreateOptions{}, types.ZarfPublishOptions{})

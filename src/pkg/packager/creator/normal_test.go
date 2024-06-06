@@ -5,13 +5,21 @@
 package creator
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/defenseunicorns/zarf/src/pkg/layout"
+	"github.com/defenseunicorns/zarf/src/pkg/packager/lint"
 	"github.com/defenseunicorns/zarf/src/types"
 	"github.com/stretchr/testify/require"
 )
+
+type mockSchemaLoader struct{}
+
+func (m *mockSchemaLoader) ReadFile(_ string) ([]byte, error) {
+	return os.ReadFile("../../../../zarf.schema.json")
+}
 
 func TestDifferentialPackagePathSetCorrectly(t *testing.T) {
 	type testCase struct {
@@ -75,7 +83,7 @@ func TestLoadPackageDefinition(t *testing.T) {
 		{
 			name:        "invalid package definition",
 			testDir:     "invalid",
-			expectedErr: "package must have at least 1 component",
+			expectedErr: "errors during lint",
 		},
 	}
 
@@ -83,6 +91,7 @@ func TestLoadPackageDefinition(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			lint.ZarfSchema = &mockSchemaLoader{}
 
 			src := layout.New(filepath.Join("testdata", tt.testDir))
 			pc := NewPackageCreator(types.ZarfCreateOptions{}, "")

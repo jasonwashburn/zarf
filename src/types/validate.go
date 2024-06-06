@@ -21,6 +21,7 @@ const (
 
 var (
 	// IsLowercaseNumberHyphenNoStartHyphen is a regex for lowercase, numbers and hyphens that cannot start with a hyphen.
+	// https://regex101.com/r/FLdG9G/2
 	IsLowercaseNumberHyphenNoStartHyphen = regexp.MustCompile(`^[a-z0-9][a-z0-9\-]*$`).MatchString
 	// Define allowed OS, an empty string means it is allowed on all operating systems
 	// same as enums on ZarfComponentOnlyTarget

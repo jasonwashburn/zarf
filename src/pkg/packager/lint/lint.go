@@ -5,7 +5,6 @@
 package lint
 
 import (
-	"embed"
 	"fmt"
 	"regexp"
 	"strings"
@@ -21,24 +20,25 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// ZarfSchema is exported so main.go can embed the schema file
-var ZarfSchema embed.FS
-
-func getSchemaFile() ([]byte, error) {
-	return ZarfSchema.ReadFile("zarf.schema.json")
+// FileLoader is an interface for reading files, it decouples the lint package from the go embed package
+type FileLoader interface {
+	ReadFile(path string) ([]byte, error)
 }
+
+// ZarfSchema is exported so main.go can embed the schema file
+var ZarfSchema FileLoader
 
 // Validate validates a zarf file against the zarf schema, returns *validator with warnings or errors if they exist
 // along with an error if the validation itself failed
-func Validate(createOpts types.ZarfCreateOptions) (*Validator, error) {
+func Validate(pp *layout.PackagePaths, createOpts types.ZarfCreateOptions) (*Validator, error) {
 	validator := Validator{}
 	var err error
 
-	if err := utils.ReadYaml(layout.ZarfYAML, &validator.typedZarfPackage); err != nil {
+	if err := utils.ReadYaml(pp.ZarfYAML, &validator.typedZarfPackage); err != nil {
 		return nil, err
 	}
 
-	if err := utils.ReadYaml(layout.ZarfYAML, &validator.untypedZarfPackage); err != nil {
+	if err := utils.ReadYaml(pp.ZarfYAML, &validator.untypedZarfPackage); err != nil {
 		return nil, err
 	}
 
@@ -47,7 +47,7 @@ func Validate(createOpts types.ZarfCreateOptions) (*Validator, error) {
 	lintComponents(&validator, &createOpts)
 	lintPkg(&validator)
 
-	jsonSchema, err := getSchemaFile()
+	jsonSchema, err := ZarfSchema.ReadFile("zarf.schema.json")
 	if err != nil {
 		return nil, err
 	}

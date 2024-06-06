@@ -119,7 +119,7 @@ func (pc *PackageCreator) LoadPackageDefinition(src *layout.PackagePaths) (pkg t
 		}
 	}
 
-	if err := lintPackage(pc.createOpts); err != nil {
+	if err := lintPackage(src, pc.createOpts); err != nil {
 		return types.ZarfPackage{}, nil, err
 	}
 

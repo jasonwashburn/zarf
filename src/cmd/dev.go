@@ -16,6 +16,7 @@ import (
 	"github.com/defenseunicorns/zarf/src/cmd/common"
 	"github.com/defenseunicorns/zarf/src/config"
 	"github.com/defenseunicorns/zarf/src/config/lang"
+	"github.com/defenseunicorns/zarf/src/pkg/layout"
 	"github.com/defenseunicorns/zarf/src/pkg/message"
 	"github.com/defenseunicorns/zarf/src/pkg/packager"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/lint"
@@ -254,10 +255,8 @@ var devLintCmd = &cobra.Command{
 		v := common.GetViper()
 		pkgConfig.CreateOpts.SetVariables = helpers.TransformAndMergeMap(
 			v.GetStringMapString(common.VPkgCreateSet), pkgConfig.CreateOpts.SetVariables, strings.ToUpper)
-		if err := os.Chdir(pkgConfig.CreateOpts.BaseDir); err != nil {
-			message.Fatal(err, err.Error())
-		}
-		validator, err := lint.Validate(pkgConfig.CreateOpts)
+		pp := layout.New(pkgConfig.CreateOpts.BaseDir)
+		validator, err := lint.Validate(pp, pkgConfig.CreateOpts)
 		if err != nil {
 			message.Fatal(err, err.Error())
 		}
