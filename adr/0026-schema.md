@@ -58,6 +58,7 @@ Any key that exists at the introduction of v1 will last the entirety of that sch
 - *then* Zarf pre 1 will deploy the package without issues. If there is an automatic migration to a previous field that then will take place. If the field is unrecognized by the schema, then the user will be warned they are deploying a package that has features that do not exist in the current version of Zarf.
 
 ## Consequences
+- As long as the only deprecated features in a package have migration path, and the package was built after the feature was deprecated so migrations were run, Zarf will be successful both creating a package with v1 and deploying with prev1, and creating a package with prev1 and deploying with v1.
 - Users of deprecated group or cosignKeyPath might be frustrated if their packages, created prev1, error out on Zarf v1, however this is likely preferable to unexpected behavior occurring in the cluster.
-- We will have to have two different schema types which will be mostly be duplicate code. However the original type should never change, which mitigates much of the issue.
 - Users may be frustrated that they have to run `zarf dev update-schema` to edit their `zarf.yaml` to remove the deprecated fields and add `apiVersion`.
+- We will have to have two different schema types which will be mostly be duplicate code. However the original type should never change, which mitigates much of the issue.
