@@ -18,7 +18,7 @@ Zarf currently does not have explicit schema versions. Any schema changes are em
 
 Zarf has not disabled any deprecated keys thus far. On create the user is always warned when using a deprecated field, however the field still exists in the schema and functions properly. Some of the deprecated keys can be migrated automatically as the old item is a subset or directly related to it's replacement. For example, setVariable is automatically migrated to a single item list of setVariables. This migration occurs on the zarf.yaml fed into the package during package create, however the original field is not deleted from the packaged zarf.yaml because the Zarf binary used in the airgap or delivery environment is not assumed to have the new schema fields that the deprecated key was migrated to.
 
-There are two problems this ADR aims to solve
+There are two problems this ADR aims to solve:
 - Supporting deprecated features forever is complex and time consuming
 - Dropping feature support can frustrate or confuse users
 
@@ -32,12 +32,10 @@ In v1, deprecated features that have a direct migration path will cause an error
 
 Any key that exists at the introduction of v1 will last the entirety of that schema lifetime. The features may be deprecated, but will not be removed until the next schema version.
 
-
-
 ### BDD scenarios
 #### v1 create with deprecated keys
-- *Given*: Zarf version is v1
-- *and*: the `zarf.yaml` has no apiVersion or deprecated keys
+- *Given* Zarf version is v1
+- *and* the `zarf.yaml` has no apiVersion or deprecated keys
 - *when* the user runs `zarf package create`
 - *then* they will receive an error and be told to run `zarf dev update-schema` or how to migrate off cosign key paths or how to use flavors over groups depending on the error
 
