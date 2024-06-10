@@ -24,11 +24,11 @@ There are two problems this ADR aims to solve:
 
 ## Decision
 
-Zarf will introduce proper schema versions. A top level key, `apiVersion`, will be introduced to allow users to specify the schema. `zarf package create` will fail at v1 if the user has deprecated keys or is missing `apiVersion` and the user will be instructed to run the new `zarf dev update-schema` command. `zarf dev update-schema` will automatically update deprecated fields in the users `zarf.yaml` where possible. It will also add the apiVersion key and set it to v1.
+Zarf will begin having proper schema versions. A top level key, `apiVersion`, will be introduced to allow users to specify the schema. At the release of v1 the only valid user input for `apiVersion` will be v1. Zarf will not allow users to build at the pre v1 version. `zarf package create` will fail if the user has deprecated keys or if `apiVersion` is missing and the user will be instructed to run the new `zarf dev update-schema` command. `zarf dev update-schema` will automatically migrate deprecated fields in the users `zarf.yaml` where possible. It will also add the apiVersion key and set it to v1.
 
-The existing go types which comprise the Zarf schema will be moved to types/alpha. Once v1 is released this types/alpha will not be edited. A copy of these types will be created in a package types/v1 and this is where active development will happen.
+The existing go types which comprise the Zarf schema will be moved to types/alpha and will never change. An updated copy of these types without the deprecated fields will be created in a package types/v1 and all schema changes will happen on these objects. Any place in the code that is using a struct included in the Zarf schema will change from `types.structName` to `v1.structName`.
 
-In v1, deprecated features that have a direct migration path will cause an error on create, but will still be deployed if the package was created pre v1. Pre v1 packages are packages that do not have the apiVersion key set. In code when these packages are read they will be automatically migrated to the type v1 package and all functions will accept v1 types. If a feature does not have a direct automatic migration path (cosignKeyPath & groups) the package will fail on deploy. This will happen until the alpha schema is entirely removed from Zarf, which will happen one year after v1 is released.
+All deprecated features will cause an error on create. Deprecated features with a direct migration path will still be deployed if the package was created v1, as migrations will add the non deprecated fields. If a feature does not have a direct automatic migration path (cosignKeyPath & groups) the package will fail on deploy. This will happen until the alpha schema is entirely removed from Zarf, which will happen one year after v1 is released.
 
 Any key that exists at the introduction of v1 will last the entirety of that schema lifetime. The features may be deprecated, but will not be removed until the next schema version.
 
@@ -58,7 +58,6 @@ Any key that exists at the introduction of v1 will last the entirety of that sch
 - *then* Zarf pre 1 will deploy the package without issues. If there is an automatic migration to a previous field that then will take place. If the field is unrecognized by the schema, then the user will be warned they are deploying a package that has features that do not exist in the current version of Zarf.
 
 ## Consequences
-
-- Users of deprecated group do not have a direct replacement, though this will happen regardless, and we've been warning users of several months
-- We will have to have two different schema types which will be mostly copies of one another. However the original schema should never change
--
+- Users of deprecated group or cosignKeyPath might be frustrated if their packages, created prev1, error out on Zarf v1, however this is likely preferable to unexpected behavior occurring in the cluster.
+- We will have to have two different schema types which will be mostly be duplicate code. However the original type should never change, which mitigates much of the issue.
+- Users may be frustrated that they have to run `zarf dev update-schema` to edit their `zarf.yaml` to remove the deprecated fields and add `apiVersion`.
