@@ -1,4 +1,4 @@
-# 25. Zarf Schema for 1.0
+# 25. Zarf Schema for 1
 
 Date: 2024-06-07
 
@@ -24,25 +24,44 @@ There are two problems this ADR aims to solve
 
 # Decisions
 
-Zarf will introduce proper schema versions. A top level key, `apiVersion`, will be introduced to allow users to specify the schema. If `apiVersion` is not specified it will be assumed to be the 1.0 schema. In v1.0, deprecated features will be entirely deleted from Zarf. Any key that exists at the introduction of 1.0 will last the entirety of that schema lifetime. The features may be deprecated, but will not be removed until the next schema version.
+Zarf will introduce proper schema versions. A top level key, `apiVersion`, will be introduced to allow users to specify the schema. If `apiVersion` is not specified we will break on deploy and instruct users to run `zarf dev update-schema`. Any package without this key will be assumed to use the alpha schema
 
-The `zarf dev update-schema` command will be introduced to automatically update any deprecated fields in the users `zarf.yaml`, it will also add the apiVersion key and value. `zarf package create` will fail if the user has any deprecated keys and they will have a call to action to run `zarf dev update-schema`
+In v1, deprecated features that have a direct migration path will cause an error on create, but will still be deployed if the package was created pre v1. If a feature does not have a direct automatic migration path (cosignKeyPath & groups) they will fail on deploy. This will exist until the alpha schema is entirely removed from Zarf, which will happen one year after v1 is released.
+
+The existing types which comprise the Zarf schema will be moved to types/alpha and be renamed to alpha. Once v1 is released this package will not be touched again. A copy of these types will be created in a package called v1
+
+Any key that exists at the introduction of v1 will last the entirety of that schema lifetime. The features may be deprecated, but will not be removed until the next schema version.
+
+The `zarf dev update-schema` command will be introduced to automatically update deprecated fields in the users `zarf.yaml` where possible. It will also add the apiVersion key and set it to v1. `zarf package create` will fail if the user has deprecated keys with a list of the deprecated keys and a call to action to run `zarf dev update-schema`.
 
 
 ## BDD scenarios
-### 1.0 create with deprecated keys
-- *Given*: A user has a `zarf.yaml` with keys deprecated pre v1.0
+### 1 create with deprecated keys
+- *Given*: A user has a `zarf.yaml` with keys deprecated pre v1
 - *when* the user runs `zarf package create`
 - *then* they will receive an error and be told to run `zarf dev update-schema` or how to migrate off cosign key paths or how to use flavors over groups depending on the error
 
-### create with pre 1.0 -> deploy with 1.0
-- *Given*: A package is created with Zarf pre v1.0
-- *and* that package has deprecated keys
-- *when* the package is deployed with Zarf v1.0
-- *then* the package will be read without error, but the deprecated keys will be ignored.
+### pre 1 auto migrate create -> 1 deploy
+- *Given*: A package is created with Zarf pre v1
+- *and* that package has deprecated keys that can be automatically migrated (required, scripts, & set variables)
+- *when* the package is deployed with Zarf v1
+- *then* the keys will be automatically migrated & the package will be deployed without error.
 
-### create with post 1.0 -> deploy with pre 1.0
-- *Given*: A package is created with Zarf v1.0
-- *and* that package has deprecated keys
-- *when* the package is deployed with Zarf pre v1.0
-- *then* Zarf pre 1.0 will deploy the package without issues. If necessary this may mean doing translations in the before packaging the zarf.yaml similar to how the current deprecated migration steps work. We may do this with the `required` key depending on when it is deprecated in favor of `optional`.
+### pre 1 create feature removal -> 1 deploy
+- *Given*: A package is created with Zarf pre v1
+- *and* that package has deprecated keys that cannot be automatically migrated (groups, cosignKeyPath)
+- *when* the package is deployed with Zarf v1
+- *then* then deploy of that package will fail and the user will be instructed to update their package
+
+### 1 create -> pre 1 deploy
+- *Given*: A package is created with Zarf v1
+- *and* that package uses keys that did not exist in pre v1
+- *when* the package is deployed with Zarf pre v1
+- *then* Zarf pre 1 will deploy the package without issues. If there is an automatic migration to a previous field that then will take place. If there is not an automatic migration path, then the user will be warned they are deploying a package that has schema fields that are unrecognized in the current Zarf version.
+
+# Make a plan
+
+- Document that the v1 package is what we use in all our code
+- Potentially we support previous version of the schema
+- If a new feature is created it will not exist in the old schema if deployed by an old package, we should log when the schema changes.
+- If you are creating on v1 you must specify api version. This can also be done automatically through zarf dev update schema
