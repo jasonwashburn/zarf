@@ -63,7 +63,7 @@ Any key that exists at the introduction of v1 will last the entirety of that sch
 - Users may be frustrated that they have to run `zarf dev update-schema` to edit their `zarf.yaml` to remove the deprecated fields and add `apiVersion`.
 - We will have to have two different schema types which will be mostly be duplicate code. However the original type should never change, which mitigates much of the issue.
 
-Below is an example zarf.yaml would look like with, somewhat, reasonable & nonempty values for every key
+Below is an example v1 zarf.yaml with, somewhat, reasonable & nonempty values for every key
 ```yaml
 kind: ZarfPackageConfig
 apiVersion: v1
