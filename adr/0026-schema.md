@@ -30,14 +30,19 @@ The `zarf dev update-schema` command will be introduced to automatically update 
 
 
 BDD:
+# 1.0 create with deprecated keys
 - *Given*: A user has a `zarf.yaml` with keys deprecated pre v1.0
-  *when* the user runs `zarf package create`
-  *then* they will receive an error and be told to run `zarf dev update-schema` or how to migrate off cosign key paths or how to use flavors over groups depending on the error
+- *when* the user runs `zarf package create`
+- *then* they will receive an error and be told to run `zarf dev update-schema` or how to migrate off cosign key paths or how to use flavors over groups depending on the error
+
+# create with pre 1.0 -> deploy with post 1.0
 - *Given*: A package is created with Zarf pre v1.0
-  *and* that package has deprecated keys
-  *when* the package is deployed with Zarf post v1.0
-  *then* the package will be read without error, but the deprecated keys will be ignored.
+- *and* that package has deprecated keys
+- *when* the package is deployed with Zarf post v1.0
+- *then* the package will be read without error, but the deprecated keys will be ignored.
+
+# create with post 1.0 -> deploy with pre 1.0
 - *Given*: A package is created with Zarf post 1.0
-  *and* that package has deprecated keys
-  *when* the deployed with Zarf version pre 1.0.
-  *then* Zarf pre 1.0 will deploy the package without issues. If necessary this may mean doing translations in the before packaging the zarf.yaml similar to how the current deprecated migration steps work. We may do this with the `required` key depending on when it is deprecated in favor of `optional`.
+- *and* that package has deprecated keys
+- *when* the deployed with Zarf version pre 1.0.
+- *then* Zarf pre 1.0 will deploy the package without issues. If necessary this may mean doing translations in the before packaging the zarf.yaml similar to how the current deprecated migration steps work. We may do this with the `required` key depending on when it is deprecated in favor of `optional`.
