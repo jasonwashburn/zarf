@@ -14,7 +14,7 @@ Zarf currently does not have explicit schema versions. Any schema changes are em
 - `scripts` deprecated in favor of `actions`
 - `required` soon to be deprecated in favor of `optional`.
 - `group` deprecated in favor of `flavor`, however these work functionally different and cannot be automatically migrated
-- `cosign` <- Austin to understand this one better
+- `cosignKeyPath` deprecated in favor of specifying the key path at create time
 
 Zarf has not disabled any deprecated keys thus far. On create the user is always warned when using a deprecated field, however the field still exists in the schema and functions properly. Some of the deprecated keys can be migrated automatically as the old item is a subset or directly related to it's replacement. For example, setVariable is automatically migrated to a single item list of setVariables. This migration occurs on the zarf.yaml fed into the package during package create, however the original field is not deleted from the packaged zarf.yaml because the Zarf binary used in the airgap or delivery environment is not assumed to have the new schema fields that the deprecated key was migrated to.
 
@@ -32,7 +32,7 @@ The `zarf dev update-schema` command will be introduced to automatically update 
 BDD:
 - *Given*: A user has a `zarf.yaml` with keys deprecated pre v1.0
   *when* the user runs `zarf package create`
-  *then* they will receive an error and be told to run `zarf dev update-schema` if applicable or be told what to fix
+  *then* they will receive an error and be told to run `zarf dev update-schema` or how to migrate off cosign key paths or how to use flavors over groups depending on the error
 - *Given*: A package is created with Zarf pre v1.0
   *and* that package has deprecated keys
   *when* the package is deployed with Zarf post v1.0
