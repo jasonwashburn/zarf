@@ -57,10 +57,6 @@ Any key that exists at the introduction of v1 will last the entirety of that sch
 - *when* the package is deployed with Zarf pre v1
 - *then* Zarf pre 1 will deploy the package without issues. If there is an automatic migration to a previous field that then will take place. If the field is unrecognized by the schema, then the user will be warned they are deploying a package that has features that do not exist in the current version of Zarf.
 
-## Option to discuss
-
-At create time Zarf will package both a `zarf.yaml` and a `zarfv1.yaml`, if a `zarfv1.yaml` exists Zarf will use that. If a `zarfv1.yaml` does not exist, then Zarf will know that the package was prev1 and use the regular `zarf.yaml`. This will allow new features or schema changes added post v1 to be migrated to the old Zarf schema so the new features can be deployed preV1
-
 ## Consequences
 
 - Users of deprecated group do not have a direct replacement, though this will happen regardless, and we've been warning users of several months
