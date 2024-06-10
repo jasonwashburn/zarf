@@ -22,7 +22,7 @@ There are two problems this ADR aims to solve:
 - Supporting deprecated features forever is complex and time consuming
 - Dropping feature support can frustrate or confuse users
 
-## Decisions
+## Decision
 
 Zarf will introduce proper schema versions. A top level key, `apiVersion`, will be introduced to allow users to specify the schema. `zarf package create` will fail at v1 if the user has deprecated keys or is missing `apiVersion` and the user will be instructed to run the new `zarf dev update-schema` command. `zarf dev update-schema` will automatically update deprecated fields in the users `zarf.yaml` where possible. It will also add the apiVersion key and set it to v1.
 
@@ -56,3 +56,13 @@ Any key that exists at the introduction of v1 will last the entirety of that sch
 - *and* that package uses keys that did not exist in pre v1
 - *when* the package is deployed with Zarf pre v1
 - *then* Zarf pre 1 will deploy the package without issues. If there is an automatic migration to a previous field that then will take place. If the field is unrecognized by the schema, then the user will be warned they are deploying a package that has features that do not exist in the current version of Zarf.
+
+## Option to discuss
+
+At create time Zarf will package both a `zarf.yaml` and a `zarfv1.yaml`, if a `zarfv1.yaml` exists Zarf will use that. If a `zarfv1.yaml` does not exist, then Zarf will know that the package was prev1 and use the regular `zarf.yaml`. This will allow new features or schema changes added post v1 to be migrated to the old Zarf schema so the new features can be deployed preV1
+
+## Consequences
+
+- Users of deprecated group do not have a direct replacement, though this will happen regardless, and we've been warning users of several months
+- We will have to have two different schema types which will be mostly copies of one another. However the original schema should never change
+-
