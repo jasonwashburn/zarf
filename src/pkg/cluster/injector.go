@@ -13,7 +13,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/defenseunicorns/pkg/helpers"
+	"github.com/defenseunicorns/pkg/helpers/v2"
 	"github.com/defenseunicorns/zarf/src/config"
 	"github.com/defenseunicorns/zarf/src/pkg/k8s"
 	"github.com/defenseunicorns/zarf/src/pkg/layout"
@@ -276,7 +276,7 @@ func (c *Cluster) createPayloadConfigMaps(ctx context.Context, seedImagesDir, ta
 
 // Test for pod readiness and seed image presence.
 func (c *Cluster) injectorIsReady(ctx context.Context, seedImages []transform.Image, spinner *message.Spinner) bool {
-	tunnel, err := c.NewTunnel(ZarfNamespaceName, k8s.SvcResource, ZarfInjectorName, "", 0, ZarfInjectorPort)
+	tunnel, err := c.NewTunnel(ZarfNamespaceName, SvcResource, ZarfInjectorName, "", 0, ZarfInjectorPort)
 	if err != nil {
 		return false
 	}

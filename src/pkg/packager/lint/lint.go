@@ -5,11 +5,12 @@
 package lint
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/defenseunicorns/pkg/helpers"
+	"github.com/defenseunicorns/pkg/helpers/v2"
 	"github.com/defenseunicorns/zarf/src/config"
 	"github.com/defenseunicorns/zarf/src/config/lang"
 	"github.com/defenseunicorns/zarf/src/pkg/layout"
@@ -30,7 +31,7 @@ var ZarfSchema FileLoader
 
 // Validate validates a zarf file against the zarf schema, returns *validator with warnings or errors if they exist
 // along with an error if the validation itself failed
-func Validate(pp *layout.PackagePaths, createOpts types.ZarfCreateOptions) (*Validator, error) {
+func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.ZarfCreateOptions) (*Validator, error) {
 	validator := Validator{}
 	var err error
 
@@ -44,8 +45,8 @@ func Validate(pp *layout.PackagePaths, createOpts types.ZarfCreateOptions) (*Val
 
 	validator.baseDir = createOpts.BaseDir
 
-	lintComponents(&validator, &createOpts)
 	lintPkg(&validator)
+	lintComponents(ctx, &validator, &createOpts)
 
 	jsonSchema, err := ZarfSchema.ReadFile("zarf.schema.json")
 	if err != nil {
@@ -76,7 +77,7 @@ func lintPkg(validator *Validator) {
 	}
 }
 
-func lintComponents(validator *Validator, createOpts *types.ZarfCreateOptions) {
+func lintComponents(ctx context.Context, validator *Validator, createOpts *types.ZarfCreateOptions) {
 	for i, component := range validator.typedZarfPackage.Components {
 		arch := config.GetArch(validator.typedZarfPackage.Metadata.Architecture)
 
@@ -84,7 +85,7 @@ func lintComponents(validator *Validator, createOpts *types.ZarfCreateOptions) {
 			continue
 		}
 
-		chain, err := composer.NewImportChain(component, i, validator.typedZarfPackage.Metadata.Name, arch, createOpts.Flavor)
+		chain, err := composer.NewImportChain(ctx, component, i, validator.typedZarfPackage.Metadata.Name, arch, createOpts.Flavor)
 		baseComponent := chain.Head()
 
 		var badImportYqPath string

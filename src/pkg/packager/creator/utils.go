@@ -5,6 +5,7 @@
 package creator
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -19,7 +20,7 @@ import (
 )
 
 func lintPackage(src *layout.PackagePaths, createOpts types.ZarfCreateOptions) error {
-	validator, err := lint.Validate(src, createOpts)
+	validator, err := lint.Validate(context.TODO(), src, createOpts)
 	if err != nil {
 		return fmt.Errorf("unable to lint package: %w", err)
 	}

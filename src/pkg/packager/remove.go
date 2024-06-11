@@ -13,7 +13,7 @@ import (
 
 	"slices"
 
-	"github.com/defenseunicorns/pkg/helpers"
+	"github.com/defenseunicorns/pkg/helpers/v2"
 	"github.com/defenseunicorns/zarf/src/config"
 	"github.com/defenseunicorns/zarf/src/internal/packager/helm"
 	"github.com/defenseunicorns/zarf/src/pkg/cluster"
@@ -39,7 +39,7 @@ func (p *Packager) Remove(ctx context.Context) (err error) {
 
 	// we do not want to allow removal of signed packages without a signature if there are remove actions
 	// as this is arbitrary code execution from an untrusted source
-	p.cfg.Pkg, p.warnings, err = p.source.LoadPackageMetadata(p.layout, false, false)
+	p.cfg.Pkg, p.warnings, err = p.source.LoadPackageMetadata(ctx, p.layout, false, false)
 	if err != nil {
 		return err
 	}
