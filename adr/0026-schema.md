@@ -18,21 +18,23 @@ Zarf currently does not have explicit schema versions. Any schema changes are em
 
 Zarf has not disabled any deprecated keys thus far. On create the user is always warned when using a deprecated field, however the field still exists in the schema and functions properly. Some of the deprecated keys can be migrated automatically as the old item is a subset or directly related to it's replacement. For example, setVariable is automatically migrated to a single item list of setVariables. This migration occurs on the zarf.yaml fed into the package during package create, however the original field is not deleted from the packaged zarf.yaml because the Zarf binary used in the airgap or delivery environment is not assumed to have the new schema fields that the deprecated key was migrated to.
 
-There are two problems this ADR aims to solve:
-- Supporting deprecated features forever is complex and time consuming
-- Dropping feature support can frustrate or confuse users
+Creating a v1 schema will allow Zarf to establish a contract with it's user base that features will be supported long term. It will also provide a convenient time for Zarf to drop deprecated features.
 
 ## Decision
 
+//TODO how do we introduce experimental features
+
 Zarf will begin having proper schema versions. A top level key, `apiVersion`, will be introduced to allow users to specify the schema. At the release of v1 the only valid user input for `apiVersion` will be v1. Zarf will not allow users to build at the pre v1 version. `zarf package create` will fail if the user has deprecated keys or if `apiVersion` is missing and the user will be instructed to run the new `zarf dev update-schema` command. `zarf dev update-schema` will automatically migrate deprecated fields in the users `zarf.yaml` where possible. It will also add the apiVersion key and set it to v1.
 
-The existing go types which comprise the Zarf schema will be moved to types/alpha and will never change. An updated copy of these types without the deprecated fields will be created in a package types/v1 and all schema changes will happen on these objects. Any place in the code that is using a struct included in the Zarf schema will change from `types.structName` to `v1.structName`.
+The existing go types which comprise the Zarf schema will be moved to types/alpha and will never change. An updated copy of these types without the deprecated fields will be created in a package types/v1 and any future schema changes will affect these objects. Internally, Zarf will introduce translation functions which will take the alpha schema and return the v1 schema. From that point on, all function signatures that have a struct that is included in the Zarf schema will change from `types.structName` to `v1.structName`.
 
 All deprecated features will cause an error on create. Deprecated features with a direct migration path will still be deployed if the package was created v1, as migrations will add the non deprecated fields. If a feature does not have a direct automatic migration path (cosignKeyPath & groups) the package will fail on deploy. This will happen until the alpha schema is entirely removed from Zarf, which will happen one year after v1 is released.
 
 Any key that exists at the introduction of v1 will last the entirety of that schema lifetime. The features may be deprecated, but will not be removed until the next schema version.
 
 ### BDD scenarios
+The following are (behavior driven development)[https://en.wikipedia.org/wiki/Behavior-driven_development] scenarios provide context of what Zarf will do in specific situations given the above decisions.
+
 #### v1 create with deprecated keys
 - *Given* Zarf version is v1
 - *and* the `zarf.yaml` has no apiVersion or deprecated keys
