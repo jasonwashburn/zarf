@@ -33,13 +33,12 @@ var ZarfSchema FileLoader
 // along with an error if the validation itself failed
 func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.ZarfCreateOptions) (*Validator, error) {
 	validator := &Validator{baseDir: createOpts.BaseDir}
-	var err error
 
 	if err := utils.ReadYaml(pp.ZarfYAML, validator.zarfPackage); err != nil {
 		return nil, err
 	}
 
-	if err = lintComponents(ctx, validator, &createOpts); err != nil {
+	if err := lintComponents(ctx, validator, &createOpts); err != nil {
 		return nil, err
 	}
 
@@ -49,7 +48,7 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 	}
 
 	validator.zarfPackage.Metadata.Architecture = config.GetArch(validator.zarfPackage.Metadata.Architecture)
-	composed, _, err := composer.ComposeComponents(ctx, validator.zarfPackage, createOpts.Flavor)
+	composed, _, err := composer.ComposeComponents(ctx, *validator.zarfPackage, createOpts.Flavor)
 	if err != nil {
 		return nil, err
 	}
