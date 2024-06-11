@@ -39,7 +39,9 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 		return nil, err
 	}
 
-	lintComponents(ctx, validator, &createOpts)
+	if err = lintComponents(ctx, validator, &createOpts); err != nil {
+		return nil, err
+	}
 
 	jsonSchema, err := ZarfSchema.ReadFile("zarf.schema.json")
 	if err != nil {
@@ -65,7 +67,7 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 	return validator, nil
 }
 
-func lintComponents(ctx context.Context, validator *Validator, createOpts *types.ZarfCreateOptions) {
+func lintComponents(ctx context.Context, validator *Validator, createOpts *types.ZarfCreateOptions) error {
 	for i, component := range validator.zarfPackage.Components {
 		arch := config.GetArch(validator.zarfPackage.Metadata.Architecture)
 		if !composer.CompatibleComponent(component, arch, createOpts.Flavor) {
@@ -96,14 +98,17 @@ func lintComponents(ctx context.Context, validator *Validator, createOpts *types
 		node := baseComponent
 		for node != nil {
 			checkForVarInComponentImport(validator, node)
-			fillComponentTemplate(validator, node, createOpts)
+			if err = fillComponentTemplate(validator, node, createOpts); err != nil {
+				return err
+			}
 			lintComponent(validator, node)
 			node = node.Next()
 		}
 	}
+	return nil
 }
 
-func fillComponentTemplate(validator *Validator, node *composer.Node, createOpts *types.ZarfCreateOptions) {
+func fillComponentTemplate(validator *Validator, node *composer.Node, createOpts *types.ZarfCreateOptions) error {
 	templateMap := map[string]string{}
 
 	setVarsAndWarn := func(templatePrefix string, deprecated bool) {
@@ -143,8 +148,7 @@ func fillComponentTemplate(validator *Validator, node *composer.Node, createOpts
 	// [DEPRECATION] Set the Package Variable syntax as well for backward compatibility
 	setVarsAndWarn(types.ZarfPackageVariablePrefix, true)
 
-	//nolint: errcheck // This error should bubble up
-	utils.ReloadYamlTemplate(node, templateMap)
+	return utils.ReloadYamlTemplate(node, templateMap)
 }
 
 func isPinnedImage(image string) (bool, error) {
