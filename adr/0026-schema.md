@@ -27,8 +27,6 @@ Creating a v1 schema will allow Zarf to establish a contract with it's user base
 
 ## Decision
 
-//TODO how do we introduce experimental features
-
 Zarf will begin having proper schema versions. A top level key, `apiVersion`, will be introduced to allow users to specify the schema. At the release of v1 the only valid user input for `apiVersion` will be v1. Zarf will not allow users to build using the v0 schema. `zarf package create` will fail if the user has deprecated keys or if `apiVersion` is missing and the user will be instructed to run the new `zarf dev update-schema` command. `zarf dev update-schema` will automatically migrate deprecated fields in the users `zarf.yaml` where possible. It will also add the apiVersion key and set it to v1.
 
 The existing go types which comprise the Zarf schema will be moved to types/alpha and will never change. An updated copy of these types without the deprecated fields will be created in a package types/v1 and any future schema changes will affect these objects. Internally, Zarf will introduce translation functions which will take the alpha schema and return the v1 schema. From that point on, all function signatures that have a struct that is included in the Zarf schema will change from `types.structName` to `v1.structName`.
@@ -36,6 +34,8 @@ The existing go types which comprise the Zarf schema will be moved to types/alph
 All deprecated features will cause an error on create. Deprecated features with a direct migration path will still be deployed if the package was created v1, as migrations will add the non deprecated fields. If a feature does not have a direct automatic migration path (cosignKeyPath & groups) the package will fail on deploy. This will happen until the alpha schema is entirely removed from Zarf, which will happen one year after v1 is released.
 
 At create time Zarf will package both a `zarf.yaml` and a `zarfv1.yaml`. If a `zarfv1.yaml` exists Zarf will use that. If a `zarfv1.yaml` does not exist, then Zarf will know that the package was created prior to v1 and use the regular `zarf.yaml`. If the package is deployed with v0 it will read the `zarf.yaml` as normal even if the package has a `zarfv1.yaml`. This will make it simpler to drop deprecated items with migration paths from the v1 schema while remaining backwards compatible as those deprecated items will exist in the `zarf.yaml`
+
+If a key is experimental schema it will be marked as such in the schema. A key is assumed to be stable if it's not experimental or deprecated.
 
 ### BDD scenarios
 The following are (behavior driven development)[https://en.wikipedia.org/wiki/Behavior-driven_development] scenarios provide context of what Zarf will do in specific situations given the above decisions.
