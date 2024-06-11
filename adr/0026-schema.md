@@ -18,7 +18,9 @@ Zarf currently does not have explicit schema versions. Any schema changes are em
 
 Zarf has not disabled any deprecated keys thus far. On create the user is always warned when using a deprecated field, however the field still exists in the schema and functions properly. Some of the deprecated keys can be migrated automatically as the old item is a subset or directly related to it's replacement. For example, setVariable is automatically migrated to a single item list of setVariables. This migration occurs on the zarf.yaml fed into the package during package create, however the original field is not deleted from the packaged zarf.yaml because the Zarf binary used in the airgap or delivery environment is not assumed to have the new schema fields that the deprecated key was migrated to.
 
-Creating a v1 schema will allow Zarf to establish a contract with it's user base that features will be supported long term. It will also provide a convenient time for Zarf to drop deprecated features.
+The release of v1 will provide an opportunity to drop deprecated features that the Zarf team has stated will be dropped in v1.
+
+Creating a v1 schema will allow Zarf to establish a contract with it's user base that features will be supported long term. When a feature is deprecated in the v1 schema, it will remain backwards compatible.
 
 ## Decision
 
