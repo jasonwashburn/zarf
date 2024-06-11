@@ -32,14 +32,21 @@ var ZarfSchema FileLoader
 // Validate validates a zarf file against the zarf schema, returns *validator with warnings or errors if they exist
 // along with an error if the validation itself failed
 func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.ZarfCreateOptions) (*Validator, error) {
-	validator := Validator{}
+	validator := &Validator{baseDir: createOpts.BaseDir}
 	var err error
 
-	if err := utils.ReadYaml(pp.ZarfYAML, &validator.zarfPackage); err != nil {
+	if err := utils.ReadYaml(pp.ZarfYAML, validator.zarfPackage); err != nil {
 		return nil, err
 	}
-	validator.zarfPackage.Metadata.Architecture = config.GetArch(validator.zarfPackage.Metadata.Architecture)
 
+	lintComponents(ctx, validator, &createOpts)
+
+	jsonSchema, err := ZarfSchema.ReadFile("zarf.schema.json")
+	if err != nil {
+		return nil, err
+	}
+
+	validator.zarfPackage.Metadata.Architecture = config.GetArch(validator.zarfPackage.Metadata.Architecture)
 	composed, _, err := composer.ComposeComponents(ctx, validator.zarfPackage, createOpts.Flavor)
 	if err != nil {
 		return nil, err
@@ -49,23 +56,13 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 	if err := utils.ReadYaml(pp.ZarfYAML, &untypedZarfPackage); err != nil {
 		return nil, err
 	}
-
 	untypedZarfPackage["components"] = composed.Components
 
-	validator.baseDir = createOpts.BaseDir
-
-	lintComponents(ctx, &validator, &createOpts)
-
-	jsonSchema, err := ZarfSchema.ReadFile("zarf.schema.json")
-	if err != nil {
+	if err = validateSchema(validator, jsonSchema, untypedZarfPackage); err != nil {
 		return nil, err
 	}
 
-	if err = validateSchema(&validator, jsonSchema, untypedZarfPackage); err != nil {
-		return nil, err
-	}
-
-	return &validator, nil
+	return validator, nil
 }
 
 func lintComponents(ctx context.Context, validator *Validator, createOpts *types.ZarfCreateOptions) {
