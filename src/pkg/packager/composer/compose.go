@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2021-Present The Zarf Authors
 
-// Package creator contains functions for creating Zarf packages.
-package creator
+// Package composer contains functions for composing components within Zarf packages.
+package composer
 
 import (
 	"context"
 
 	"github.com/defenseunicorns/zarf/src/pkg/message"
-	"github.com/defenseunicorns/zarf/src/pkg/packager/composer"
 	"github.com/defenseunicorns/zarf/src/types"
 )
 
@@ -24,7 +23,7 @@ func ComposeComponents(ctx context.Context, pkg types.ZarfPackage, flavor string
 
 	for i, component := range pkg.Components {
 		// filter by architecture and flavor
-		if !composer.CompatibleComponent(component, arch, flavor) {
+		if !CompatibleComponent(component, arch, flavor) {
 			continue
 		}
 
@@ -33,7 +32,7 @@ func ComposeComponents(ctx context.Context, pkg types.ZarfPackage, flavor string
 		component.Only.Flavor = ""
 
 		// build the import chain
-		chain, err := composer.NewImportChain(ctx, component, i, pkg.Metadata.Name, arch, flavor)
+		chain, err := NewImportChain(ctx, component, i, pkg.Metadata.Name, arch, flavor)
 		if err != nil {
 			return types.ZarfPackage{}, nil, err
 		}

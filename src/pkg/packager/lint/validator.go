@@ -50,7 +50,7 @@ func (vm validatorMessage) Description() string {
 type Validator struct {
 	findings           []validatorMessage
 	typedZarfPackage   types.ZarfPackage
-	untypedZarfPackage interface{}
+	untypedZarfPackage map[string]interface{}
 	baseDir            string
 }
 

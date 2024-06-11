@@ -28,6 +28,7 @@ import (
 	"github.com/defenseunicorns/zarf/src/pkg/layout"
 	"github.com/defenseunicorns/zarf/src/pkg/message"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/actions"
+	"github.com/defenseunicorns/zarf/src/pkg/packager/composer"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/filters"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/sources"
 	"github.com/defenseunicorns/zarf/src/pkg/transform"
@@ -70,7 +71,7 @@ func (pc *PackageCreator) LoadPackageDefinition(ctx context.Context, src *layout
 	pkg.Metadata.Architecture = config.GetArch(pkg.Metadata.Architecture)
 
 	// Compose components into a single zarf.yaml file
-	pkg, composeWarnings, err := ComposeComponents(ctx, pkg, pc.createOpts.Flavor)
+	pkg, composeWarnings, err := composer.ComposeComponents(ctx, pkg, pc.createOpts.Flavor)
 	if err != nil {
 		return types.ZarfPackage{}, nil, err
 	}

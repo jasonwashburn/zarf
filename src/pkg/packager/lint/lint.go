@@ -38,10 +38,18 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 	if err := utils.ReadYaml(pp.ZarfYAML, &validator.typedZarfPackage); err != nil {
 		return nil, err
 	}
+	validator.typedZarfPackage.Metadata.Architecture = config.GetArch(validator.typedZarfPackage.Metadata.Architecture)
+
+	composed, _, err := composer.ComposeComponents(ctx, validator.typedZarfPackage, createOpts.Flavor)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := utils.ReadYaml(pp.ZarfYAML, &validator.untypedZarfPackage); err != nil {
 		return nil, err
 	}
+
+	validator.untypedZarfPackage["components"] = composed.Components
 
 	validator.baseDir = createOpts.BaseDir
 
@@ -62,7 +70,6 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 func lintComponents(ctx context.Context, validator *Validator, createOpts *types.ZarfCreateOptions) {
 	for i, component := range validator.typedZarfPackage.Components {
 		arch := config.GetArch(validator.typedZarfPackage.Metadata.Architecture)
-
 		if !composer.CompatibleComponent(component, arch, createOpts.Flavor) {
 			continue
 		}
