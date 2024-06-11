@@ -45,7 +45,6 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 
 	validator.baseDir = createOpts.BaseDir
 
-	lintPkg(&validator)
 	lintComponents(ctx, &validator, &createOpts)
 
 	jsonSchema, err := ZarfSchema.ReadFile("zarf.schema.json")
@@ -58,23 +57,6 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 	}
 
 	return &validator, nil
-}
-
-func lintPkg(validator *Validator) {
-	var errs []string
-	err := validator.typedZarfPackage.Validate()
-
-	if err != nil {
-		errs = strings.Split(err.Error(), "\n")
-	}
-
-	for _, err := range errs {
-		validator.addError(validatorMessage{
-			description:    err,
-			packageRelPath: ".",
-			packageName:    validator.typedZarfPackage.Metadata.Name,
-		})
-	}
 }
 
 func lintComponents(ctx context.Context, validator *Validator, createOpts *types.ZarfCreateOptions) {

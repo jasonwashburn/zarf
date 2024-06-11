@@ -119,6 +119,10 @@ func (pc *PackageCreator) LoadPackageDefinition(ctx context.Context, src *layout
 		}
 	}
 
+	if err := pkg.Validate(); err != nil {
+		return types.ZarfPackage{}, nil, err
+	}
+
 	if err := lintPackage(src, pc.createOpts); err != nil {
 		return types.ZarfPackage{}, nil, err
 	}

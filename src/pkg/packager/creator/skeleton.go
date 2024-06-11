@@ -70,6 +70,10 @@ func (sc *SkeletonCreator) LoadPackageDefinition(ctx context.Context, src *layou
 		message.Warn(warning)
 	}
 
+	if err := pkg.Validate(); err != nil {
+		return types.ZarfPackage{}, nil, err
+	}
+
 	if err := lintPackage(src, sc.createOpts); err != nil {
 		return types.ZarfPackage{}, nil, err
 	}
