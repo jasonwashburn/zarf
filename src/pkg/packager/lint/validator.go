@@ -49,7 +49,7 @@ func (vm validatorMessage) Description() string {
 // Validator holds the warnings/errors and messaging that we get from validation
 type Validator struct {
 	findings    []validatorMessage
-	zarfPackage *types.ZarfPackage
+	zarfPackage types.ZarfPackage
 	baseDir     string
 }
 
