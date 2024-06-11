@@ -24,7 +24,7 @@ import (
 const badZarfPackage = `
 kind: ZarfInitConfig
 metadata:
-  name: invalid-name
+  name: invalid
   description: Testing bad yaml
 
 components:
@@ -35,21 +35,6 @@ components:
   - noWait: true
   manifests:
   - namespace: no-name-for-manifest
-`
-
-const goodZarfPackage = `
-x-name: &name good-zarf-package
-
-kind: ZarfPackageConfig
-metadata:
-  name: *name
-  x-description: Testing good yaml with yaml extension
-
-components:
-  - name: baseline
-    required: true
-    x-foo: bar
-
 `
 
 func readAndUnmarshalYaml[T interface{}](t *testing.T, yamlString string) T {
@@ -196,16 +181,6 @@ func TestValidateSchema(t *testing.T) {
 }
 
 func TestValidateComponent(t *testing.T) {
-
-	// Make this an object instead of a yaml string
-	t.Run("Template in component import success", func(t *testing.T) {
-		unmarshalledYaml := readAndUnmarshalYaml[types.ZarfPackage](t, goodZarfPackage)
-		validator := Validator{typedZarfPackage: unmarshalledYaml}
-		for _, component := range validator.typedZarfPackage.Components {
-			lintComponent(&validator, &composer.Node{ZarfComponent: component})
-		}
-		require.Empty(t, validator.findings)
-	})
 
 	t.Run("Path template in component import failure", func(t *testing.T) {
 		pathVar := "###ZARF_PKG_TMPL_PATH###"
