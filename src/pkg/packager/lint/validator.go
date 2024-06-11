@@ -48,16 +48,15 @@ func (vm validatorMessage) Description() string {
 
 // Validator holds the warnings/errors and messaging that we get from validation
 type Validator struct {
-	findings           []validatorMessage
-	typedZarfPackage   types.ZarfPackage
-	untypedZarfPackage map[string]interface{}
-	baseDir            string
+	findings    []validatorMessage
+	zarfPackage types.ZarfPackage
+	baseDir     string
 }
 
 // DisplayFormattedMessage message sent to user based on validator results
 func (v Validator) DisplayFormattedMessage() {
 	if !v.hasFindings() {
-		message.Successf("0 findings for %q", v.typedZarfPackage.Metadata.Name)
+		message.Successf("0 findings for %q", v.zarfPackage.Metadata.Name)
 	}
 	v.printValidationTable(categoryWarning)
 }

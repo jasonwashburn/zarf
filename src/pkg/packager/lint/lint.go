@@ -35,21 +35,22 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 	validator := Validator{}
 	var err error
 
-	if err := utils.ReadYaml(pp.ZarfYAML, &validator.typedZarfPackage); err != nil {
+	if err := utils.ReadYaml(pp.ZarfYAML, &validator.zarfPackage); err != nil {
 		return nil, err
 	}
-	validator.typedZarfPackage.Metadata.Architecture = config.GetArch(validator.typedZarfPackage.Metadata.Architecture)
+	validator.zarfPackage.Metadata.Architecture = config.GetArch(validator.zarfPackage.Metadata.Architecture)
 
-	composed, _, err := composer.ComposeComponents(ctx, validator.typedZarfPackage, createOpts.Flavor)
+	composed, _, err := composer.ComposeComponents(ctx, validator.zarfPackage, createOpts.Flavor)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := utils.ReadYaml(pp.ZarfYAML, &validator.untypedZarfPackage); err != nil {
+	var untypedZarfPackage map[string]interface{}
+	if err := utils.ReadYaml(pp.ZarfYAML, &untypedZarfPackage); err != nil {
 		return nil, err
 	}
 
-	validator.untypedZarfPackage["components"] = composed.Components
+	untypedZarfPackage["components"] = composed.Components
 
 	validator.baseDir = createOpts.BaseDir
 
@@ -60,7 +61,7 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 		return nil, err
 	}
 
-	if err = validateSchema(&validator, jsonSchema); err != nil {
+	if err = validateSchema(&validator, jsonSchema, untypedZarfPackage); err != nil {
 		return nil, err
 	}
 
@@ -68,13 +69,13 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 }
 
 func lintComponents(ctx context.Context, validator *Validator, createOpts *types.ZarfCreateOptions) {
-	for i, component := range validator.typedZarfPackage.Components {
-		arch := config.GetArch(validator.typedZarfPackage.Metadata.Architecture)
+	for i, component := range validator.zarfPackage.Components {
+		arch := config.GetArch(validator.zarfPackage.Metadata.Architecture)
 		if !composer.CompatibleComponent(component, arch, createOpts.Flavor) {
 			continue
 		}
 
-		chain, err := composer.NewImportChain(ctx, component, i, validator.typedZarfPackage.Metadata.Name, arch, createOpts.Flavor)
+		chain, err := composer.NewImportChain(ctx, component, i, validator.zarfPackage.Metadata.Name, arch, createOpts.Flavor)
 		baseComponent := chain.Head()
 
 		var badImportYqPath string
@@ -90,7 +91,7 @@ func lintComponents(ctx context.Context, validator *Validator, createOpts *types
 			validator.addError(validatorMessage{
 				description:    err.Error(),
 				packageRelPath: ".",
-				packageName:    validator.typedZarfPackage.Metadata.Name,
+				packageName:    validator.zarfPackage.Metadata.Name,
 				yqPath:         badImportYqPath,
 			})
 		}
@@ -261,9 +262,9 @@ func makeFieldPathYqCompat(field string) string {
 	return fmt.Sprintf(".%s", wrappedField)
 }
 
-func validateSchema(validator *Validator, jsonSchema []byte) error {
+func validateSchema(validator *Validator, jsonSchema []byte, untypedZarfPackage map[string]interface{}) error {
 
-	schemaErrors, err := runSchema(jsonSchema, validator.untypedZarfPackage)
+	schemaErrors, err := runSchema(jsonSchema, untypedZarfPackage)
 	if err != nil {
 		return err
 	}
@@ -274,7 +275,7 @@ func validateSchema(validator *Validator, jsonSchema []byte) error {
 				yqPath:         makeFieldPathYqCompat(schemaErr.Field()),
 				description:    schemaErr.Description(),
 				packageRelPath: ".",
-				packageName:    validator.typedZarfPackage.Metadata.Name,
+				packageName:    validator.zarfPackage.Metadata.Name,
 			})
 		}
 	}

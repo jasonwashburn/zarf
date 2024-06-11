@@ -185,7 +185,7 @@ func TestValidateComponent(t *testing.T) {
 	t.Run("Path template in component import failure", func(t *testing.T) {
 		pathVar := "###ZARF_PKG_TMPL_PATH###"
 		pathComponent := types.ZarfComponent{Import: types.ZarfComponentImport{Path: pathVar}}
-		validator := Validator{typedZarfPackage: types.ZarfPackage{Components: []types.ZarfComponent{pathComponent}}}
+		validator := Validator{zarfPackage: types.ZarfPackage{Components: []types.ZarfComponent{pathComponent}}}
 		checkForVarInComponentImport(&validator, &composer.Node{ZarfComponent: pathComponent})
 		require.Equal(t, pathVar, validator.findings[0].item)
 	})
@@ -193,7 +193,7 @@ func TestValidateComponent(t *testing.T) {
 	t.Run("OCI template in component import failure", func(t *testing.T) {
 		ociPathVar := "oci://###ZARF_PKG_TMPL_PATH###"
 		URLComponent := types.ZarfComponent{Import: types.ZarfComponentImport{URL: ociPathVar}}
-		validator := Validator{typedZarfPackage: types.ZarfPackage{Components: []types.ZarfComponent{URLComponent}}}
+		validator := Validator{zarfPackage: types.ZarfPackage{Components: []types.ZarfComponent{URLComponent}}}
 		checkForVarInComponentImport(&validator, &composer.Node{ZarfComponent: URLComponent})
 		require.Equal(t, ociPathVar, validator.findings[0].item)
 	})
@@ -265,7 +265,7 @@ func TestValidateComponent(t *testing.T) {
 			Import: types.ZarfComponentImport{Path: pathVar},
 			Images: []string{unpinnedImage}}
 		validator := Validator{
-			typedZarfPackage: types.ZarfPackage{Components: []types.ZarfComponent{pathComponent},
+			zarfPackage: types.ZarfPackage{Components: []types.ZarfComponent{pathComponent},
 				Metadata: types.ZarfMetadata{Name: "test-zarf-package"}}}
 
 		createOpts := types.ZarfCreateOptions{Flavor: "", BaseDir: "."}
