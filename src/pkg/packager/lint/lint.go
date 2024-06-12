@@ -31,10 +31,10 @@ var ZarfSchema FileLoader
 
 // Validate validates a zarf file against the zarf schema, returns *validator with warnings or errors if they exist
 // along with an error if the validation itself failed
-func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.ZarfCreateOptions) (*Validator, error) {
+func Validate(ctx context.Context, createOpts types.ZarfCreateOptions) (*Validator, error) {
 	validator := &Validator{baseDir: createOpts.BaseDir}
 
-	if err := utils.ReadYaml(pp.ZarfYAML, &validator.zarfPackage); err != nil {
+	if err := utils.ReadYaml(layout.ZarfYAML, &validator.zarfPackage); err != nil {
 		return nil, err
 	}
 
@@ -47,17 +47,10 @@ func Validate(ctx context.Context, pp *layout.PackagePaths, createOpts types.Zar
 		return nil, err
 	}
 
-	validator.zarfPackage.Metadata.Architecture = config.GetArch(validator.zarfPackage.Metadata.Architecture)
-	composed, _, err := composer.ComposeComponents(ctx, validator.zarfPackage, createOpts.Flavor)
-	if err != nil {
+	var untypedZarfPackage interface{}
+	if err := utils.ReadYaml(layout.ZarfYAML, &untypedZarfPackage); err != nil {
 		return nil, err
 	}
-
-	var untypedZarfPackage map[string]interface{}
-	if err := utils.ReadYaml(pp.ZarfYAML, &untypedZarfPackage); err != nil {
-		return nil, err
-	}
-	untypedZarfPackage["components"] = composed.Components
 
 	if err = validateSchema(validator, jsonSchema, untypedZarfPackage); err != nil {
 		return nil, err
@@ -262,7 +255,7 @@ func makeFieldPathYqCompat(field string) string {
 	return fmt.Sprintf(".%s", wrappedField)
 }
 
-func validateSchema(validator *Validator, jsonSchema []byte, untypedZarfPackage map[string]interface{}) error {
+func validateSchema(validator *Validator, jsonSchema []byte, untypedZarfPackage interface{}) error {
 
 	schemaErrors, err := runSchema(jsonSchema, untypedZarfPackage)
 	if err != nil {

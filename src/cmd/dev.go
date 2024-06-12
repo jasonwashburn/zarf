@@ -16,7 +16,6 @@ import (
 	"github.com/defenseunicorns/zarf/src/cmd/common"
 	"github.com/defenseunicorns/zarf/src/config"
 	"github.com/defenseunicorns/zarf/src/config/lang"
-	"github.com/defenseunicorns/zarf/src/pkg/layout"
 	"github.com/defenseunicorns/zarf/src/pkg/message"
 	"github.com/defenseunicorns/zarf/src/pkg/packager"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/lint"
@@ -250,20 +249,23 @@ var devLintCmd = &cobra.Command{
 	Aliases: []string{"l"},
 	Short:   lang.CmdDevLintShort,
 	Long:    lang.CmdDevLintLong,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		pkgConfig.CreateOpts.BaseDir = common.SetBaseDirectory(args)
 		v := common.GetViper()
 		pkgConfig.CreateOpts.SetVariables = helpers.TransformAndMergeMap(
 			v.GetStringMapString(common.VPkgCreateSet), pkgConfig.CreateOpts.SetVariables, strings.ToUpper)
-		pp := layout.New(pkgConfig.CreateOpts.BaseDir)
-		validator, err := lint.Validate(cmd.Context(), pp, pkgConfig.CreateOpts)
+		if err := os.Chdir(pkgConfig.CreateOpts.BaseDir); err != nil {
+			return fmt.Errorf("unable to access directory %q: %w", pkgConfig.CreateOpts.BaseDir, err)
+		}
+		validator, err := lint.Validate(cmd.Context(), pkgConfig.CreateOpts)
 		if err != nil {
 			message.Fatal(err, err.Error())
 		}
 		validator.DisplayFormattedMessage()
 		if !validator.IsSuccess() {
-			os.Exit(1)
+			return fmt.Errorf("linting error")
 		}
+		return nil
 	},
 }
 

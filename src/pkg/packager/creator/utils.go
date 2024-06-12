@@ -13,14 +13,13 @@ import (
 	"time"
 
 	"github.com/defenseunicorns/zarf/src/config"
-	"github.com/defenseunicorns/zarf/src/pkg/layout"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/deprecated"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/lint"
 	"github.com/defenseunicorns/zarf/src/types"
 )
 
-func lintPackage(src *layout.PackagePaths, createOpts types.ZarfCreateOptions) error {
-	validator, err := lint.Validate(context.TODO(), src, createOpts)
+func lintPackage(createOpts types.ZarfCreateOptions) error {
+	validator, err := lint.Validate(context.TODO(), createOpts)
 	if err != nil {
 		return fmt.Errorf("unable to lint package: %w", err)
 	}
