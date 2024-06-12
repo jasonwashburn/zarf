@@ -196,26 +196,28 @@ func TestValidateChart(t *testing.T) {
 	}{
 		{
 			name:         "valid",
-			chart:        ZarfChart{Name: "chart1", URL: "http://whatever"},
+			chart:        ZarfChart{Name: "chart1", Namespace: "whatever", URL: "http://whatever", Version: "v1.0.0"},
 			expectedErrs: nil,
 		},
 		{
 			name:  "long name",
-			chart: ZarfChart{Name: longName, URL: "http://whatever"},
+			chart: ZarfChart{Name: longName, Namespace: "whatever", URL: "http://whatever", Version: "v1.0.0"},
 			expectedErrs: []string{
 				fmt.Sprintf(lang.PkgValidateErrChartName, longName, ZarfMaxChartNameLength),
 			},
 		},
 		{
-			name:  "no url or local path",
+			name:  "no url, local path, version, or namespace",
 			chart: ZarfChart{Name: "invalid"},
 			expectedErrs: []string{
+				fmt.Sprintf(lang.PkgValidateErrChartNamespaceMissing, "invalid"),
 				fmt.Sprintf(lang.PkgValidateErrChartURLOrPath, "invalid"),
+				fmt.Sprintf(lang.PkgValidateErrChartVersion, "invalid"),
 			},
 		},
 		{
 			name:  "both url and local path",
-			chart: ZarfChart{Name: "invalid", URL: "http://whatever", LocalPath: "wherever"},
+			chart: ZarfChart{Name: "invalid", Namespace: "whatever", URL: "http://whatever", LocalPath: "wherever", Version: "v1.0.0"},
 			expectedErrs: []string{
 				fmt.Sprintf(lang.PkgValidateErrChartURLOrPath, "invalid"),
 			},
