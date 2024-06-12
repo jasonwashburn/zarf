@@ -263,7 +263,7 @@ var devLintCmd = &cobra.Command{
 		}
 		validator.DisplayFormattedMessage()
 		if !validator.IsSuccess() {
-			return fmt.Errorf("linting error")
+			return fmt.Errorf("errors during lint")
 		}
 		return nil
 	},
