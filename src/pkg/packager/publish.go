@@ -63,6 +63,10 @@ func (p *Packager) Publish(ctx context.Context) (err error) {
 			return err
 		}
 
+		if err := sc.Validate(ctx, p.cfg.Pkg); err != nil {
+			return fmt.Errorf("package validation failed: %w", err)
+		}
+
 		if err := sc.Assemble(ctx, p.layout, p.cfg.Pkg.Components, ""); err != nil {
 			return err
 		}
