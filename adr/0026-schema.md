@@ -45,21 +45,22 @@ There are also several other keys we plan to deprecate with automated migrations
 - charts will change to be more explicit in the case of chartRepos and gitRepos. Also adding the localRepo field.
 ```yaml
 - name: podinfo-repo-new
-  chartRepo:
+  helm:
     url: https://stefanprodan.github.io/podinfo
     name: podinfo # replaces repoName since it's only applicable in this situation
-    localRepo: podinfo-local # this is the local repo helm uses for authentication, currently this key does not exist
 
 - name: podinfo-git-new
-  gitRepo:
+  git:
     url: https://stefanprodan.github.io/podinfo
     path: charts/podinfo
 
 - name: podinfo-oci-new
-  ociUrl: oci://ghcr.io/stefanprodan/charts/podinfo
+  oci:
+    url: oci://ghcr.io/stefanprodan/charts/podinfo
 
 - name: podinfo-local-same
-  localPath: chart
+  local:
+   path: chart
 ```
 - actions will change... TODO @schristoff
 
@@ -169,16 +170,17 @@ components:
       - name: REPLICA_COUNT
         description: "Override the number of pod replicas"
         path: replicaCount
-    localPath: folder # Can only have one of ociUrl, chartRepo, gitRepo or localPath
     # Everything below this line is changing https://github.com/defenseunicorns/zarf/issues/2245  
-    ociUrl: oci://ghcr.io/stefanprodan/charts/podinfo
-    gitRepo:
-      url: https://stefanprodan.github.io/podinfo
-      path: charts/podinfo
-    chartRepo:
+    helm: # Only one of helm, git, oci, url, or local is allowed
       url: https://stefanprodan.github.io/podinfo
       name: podinfo # replaces repoName since it's only applicable in this situation
-      localRepo: podinfo-local # this is the local repo helm uses for authentication, currently this key does not exist  
+    git:
+      url: https://stefanprodan.github.io/podinfo
+      path: charts/podinfo
+    oci:
+      url: oci://ghcr.io/stefanprodan/charts/podinfo
+    local:
+      path: chart
   dataInjections:
   - source: zim-data
     target:
