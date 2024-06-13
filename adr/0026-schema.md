@@ -44,13 +44,13 @@ There are also several other keys we plan to deprecate with automated migrations
 - `yolo` -> `airgap` which will default to false
 - charts will change to be more explicit in the case of chartRepos and gitRepos. Also adding the localRepo field.
 ```yaml
-- name: podinfo-git-new
+- name: podinfo-repo-new
   chartRepo:
     url: https://stefanprodan.github.io/podinfo
     name: podinfo # replaces repoName since it's only applicable in this situation
     localRepo: podinfo-local # this is the local repo helm uses for authentication, currently this key does not exist
 
-- name: podinfo-repo-new
+- name: podinfo-git-new
   gitRepo:
     url: https://stefanprodan.github.io/podinfo
     path: charts/podinfo
