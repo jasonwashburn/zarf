@@ -1,4 +1,4 @@
-# 25. Zarf Schema for 1
+# 25. Zarf Schema for v1
 
 Date: 2024-06-07
 
@@ -37,6 +37,32 @@ At create time Zarf will package both a `zarf.yaml` and a `zarfv1.yaml`. If a `z
 
 If a key is experimental schema it will be marked as such in the schema. A key is assumed to be stable if it's not experimental or deprecated.
 
+There are also several other keys we plan to deprecate with automated migrations to new fields
+- `.metadata.aggregateChecksum` -> `.build.aggregateChecksum`
+- Metadata fields `image`, `documentation`, `url`, `authors`, `vendors` -> will become a map of `labels`
+- `noWait` -> `wait` which will default to true. This change will happen on both manifests and charts
+- `yolo` -> `airgap` which will default to false
+- charts will change to be more explicit in the case of chartRepos and gitRepos. Also adding the localRepo field.
+```yaml
+- name: podinfo-git-new
+  chartRepo:
+    url: https://stefanprodan.github.io/podinfo
+    name: podinfo # replaces repoName since it's only applicable in this situation
+    localRepo: podinfo-local # this is the local repo helm uses for authentication, currently this key does not exist
+
+- name: podinfo-repo-new
+  gitRepo:
+    url: https://stefanprodan.github.io/podinfo
+    path: charts/podinfo
+
+- name: podinfo-oci-new
+  ociUrl: oci://ghcr.io/stefanprodan/charts/podinfo
+
+- name: podinfo-local-same
+  localPath: chart
+```
+- actions will change... TODO @schristoff
+
 ### BDD scenarios
 The following are (behavior driven development)[https://en.wikipedia.org/wiki/Behavior-driven_development] scenarios provide context of what Zarf will do in specific situations given the above decisions.
 
@@ -71,7 +97,6 @@ The following are (behavior driven development)[https://en.wikipedia.org/wiki/Be
 - We will have to have two different schema types which will be mostly be duplicate code. However the original type should never change, which mitigates much of the issue.
 - By having a zarf.yaml and a zarfv1.yaml it will be easy to read and write from objects to yamls directly without having to include deprecated v0 fields in the v1 schema. However, this will also mean any new keys in v1 won't exist in the `zarf.yaml` so a v0 deploy of a v1 package will not be able to warn users of unrecognized keys, we will have to use some other method.
 
-
 Below is an example v1 zarf.yaml with, somewhat, reasonable & nonempty values for every key
 ```yaml
 kind: ZarfPackageConfig
@@ -80,16 +105,17 @@ metadata:
   name: everything-zarf-package
   description: A zarf package with a non empty value for every
   version: v1.0.0
-  url: https://my-package-website.com
-  image: https://my-image-url-to-use-in-deprecated-zarf-ui # TODO This field should be deprecated
   uncompressed: true
   architecture: amd64
-  yolo: false
-  authors: cool-kidz
-  documentation: https://my-package-documentation.com
-  source: https://my-git-server/my-package
-  vendor: my-vendor
-  aggregateChecksum: shasum # created by Zarf, probably should be moved to the build section
+  airgap: true # changed from yolo
+  labels: # All of these are v0 fields that will be deprecated in favor of a choose your own adventure label map
+    authors: cool-kidz
+    documentation: https://my-package-documentation.com
+    source: https://my-git-server/my-package  
+    url: https://my-package-website.com
+    vendor: my-vendor
+    image: https://my-image-url-to-use-in-deprecated-zarf-ui  
+    anyway-you-want-it: thats-the-way-you-need-it
 build: # Everything here is created by Zarf not be users
   terminal: my-computer
   user: my-user
@@ -106,6 +132,7 @@ build: # Everything here is created by Zarf not be users
     - missing-component
   flavor: cool-flavor
   lastNonBreakingVersion: "v0.99.9"
+  aggregateChecksum: shasum # this is moved from .metadata
 components:
 - name: a-component
   description: Zarf description
@@ -134,18 +161,24 @@ components:
   - name: chart
     namespace: chart-ns
     version: v1.0.0
-    url: https://chart-url.com # Can only have one of url or localPath
-    localPath: folder
-    repoName: repo # We should change these names to make them less confusing https://github.com/defenseunicorns/zarf/issues/2245
-    gitPath: charts/podinfo
     releaseName: chart-release
-    noWait: true
+    wait: true
     valuesFiles:
     - values.yaml
     variables:
       - name: REPLICA_COUNT
         description: "Override the number of pod replicas"
         path: replicaCount
+    localPath: folder # Can only have one of ociUrl, chartRepo, gitRepo or localPath
+    # Everything below this line is changing https://github.com/defenseunicorns/zarf/issues/2245  
+    ociUrl: oci://ghcr.io/stefanprodan/charts/podinfo
+    gitRepo:
+      url: https://stefanprodan.github.io/podinfo
+      path: charts/podinfo
+    chartRepo:
+      url: https://stefanprodan.github.io/podinfo
+      name: podinfo # replaces repoName since it's only applicable in this situation
+      localRepo: podinfo-local # this is the local repo helm uses for authentication, currently this key does not exist  
   dataInjections:
   - source: zim-data
     target:
