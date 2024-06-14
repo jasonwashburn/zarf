@@ -158,7 +158,7 @@ components:
     kustomizeAllowAnyDirectory: false
     kustomizations:
     - a-kustomization.yaml
-    noWait: false
+    wait: false
   charts:
   - name: chart
     namespace: chart-ns
