@@ -61,7 +61,7 @@ func NewPackageCreator(createOpts types.ZarfCreateOptions, cwd string) *PackageC
 }
 
 // LoadPackageDefinition loads and configures a zarf.yaml file during package create.
-func (pc *PackageCreator) LoadPackageDefinition(ctx context.Context, src *layout.PackagePaths) (pkg types.ZarfPackage, warnings []string, err error) {
+func (pc *PackageCreator) LoadPackageDefinition(ctx context.Context, src *layout.PackagePaths) (pkg types.ZarfPackage, warnings []types.PackageError, err error) {
 	pkg, warnings, err = src.ReadZarfYAML()
 	if err != nil {
 		return types.ZarfPackage{}, nil, err
@@ -74,7 +74,6 @@ func (pc *PackageCreator) LoadPackageDefinition(ctx context.Context, src *layout
 	if err != nil {
 		return types.ZarfPackage{}, nil, err
 	}
-
 	warnings = append(warnings, composeWarnings...)
 
 	// After components are composed, template the active package.

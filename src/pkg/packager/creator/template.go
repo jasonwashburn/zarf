@@ -16,9 +16,9 @@ import (
 )
 
 // FillActiveTemplate merges user-specified variables into the configuration templates of a zarf.yaml.
-func FillActiveTemplate(pkg types.ZarfPackage, setVariables map[string]string) (types.ZarfPackage, []string, error) {
+func FillActiveTemplate(pkg types.ZarfPackage, setVariables map[string]string) (types.ZarfPackage, []types.PackageError, error) {
 	templateMap := map[string]string{}
-	warnings := []string{}
+	warnings := []types.PackageError{}
 
 	promptAndSetTemplate := func(templatePrefix string, deprecated bool) error {
 		yamlTemplates, err := utils.FindYamlTemplates(&pkg, templatePrefix, "###")
@@ -28,7 +28,9 @@ func FillActiveTemplate(pkg types.ZarfPackage, setVariables map[string]string) (
 
 		for key := range yamlTemplates {
 			if deprecated {
-				warnings = append(warnings, fmt.Sprintf(lang.PkgValidateTemplateDeprecation, key, key, key))
+				warnings = append(warnings, types.PackageError{
+					Description: fmt.Sprintf(lang.PkgValidateTemplateDeprecation, key, key, key),
+				})
 			}
 
 			_, present := setVariables[key]
