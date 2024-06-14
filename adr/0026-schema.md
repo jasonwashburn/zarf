@@ -23,7 +23,7 @@ Zarf has not disabled any deprecated keys thus far. On create the user is always
 
 The release of v1 will provide an opportunity to delete deprecated features that Zarf has warned will be dropped in v1.
 
-Creating a v1 schema will allow Zarf to establish a contract with it's user base that features will be supported long term. When a feature is deprecated in the v1 schema, it will remain backwards compatible.
+Creating a v1 schema will allow Zarf to establish a contract with it's user base that features will be supported long term. When a feature is deprecated in the v1 schema, it will remain usable in the schema for the lifetime of v1.
 
 ## Decision
 
@@ -35,37 +35,33 @@ All deprecated features will cause an error on create. Deprecated features with 
 
 At create time Zarf will package both a `zarf.yaml` and a `zarfv1.yaml`. If a `zarfv1.yaml` exists Zarf will use that. If a `zarfv1.yaml` does not exist, then Zarf will know that the package was created prior to v1 and use the regular `zarf.yaml`. If the package is deployed with v0 it will read the `zarf.yaml` as normal even if the package has a `zarfv1.yaml`. This will make it simpler to drop deprecated items with migration paths from the v1 schema while remaining backwards compatible as those deprecated items will exist in the `zarf.yaml`
 
-If a key is experimental schema it will be marked as such in the schema. A key is assumed to be stable if it's not experimental or deprecated.
+When Zarf introduces new keys that they are not ready to promise long term support for they will mark them as experimental in the schema. A key is assumed to be stable if it's not experimental or deprecated.
 
-There are also several other keys we plan to deprecate with automated migrations to new fields
+There are several other keys we plan to deprecate with automated migrations to new fields
 - `.metadata.aggregateChecksum` -> `.build.aggregateChecksum`
 - Metadata fields `image`, `documentation`, `url`, `authors`, `vendors` -> will become a map of `labels`
-- `noWait` -> `wait` which will default to true. This change will happen on both manifests and charts
-- `yolo` -> `airgap` which will default to false
-- charts will change to be more explicit in the case of chartRepos and gitRepos. Also adding the localRepo field.
+- `noWait` -> `wait` which will default to true. This change will happen on both `.components.manifests` and `components.charts`
+- `yolo` -> `airgap` which will default to true
+- charts will change to avoid [current confusion with keys](https://github.com/defenseunicorns/zarf/issues/2245). Exactly one of the following field will exist for each `components.charts`.
 ```yaml
-- name: podinfo-repo-new
   helm:
     url: https://stefanprodan.github.io/podinfo
-    name: podinfo # replaces repoName since it's only applicable in this situation
+    name: podinfo # replaces repoName since it's only applicable for helm repos
 
-- name: podinfo-git-new
   git:
     url: https://stefanprodan.github.io/podinfo
     path: charts/podinfo
 
-- name: podinfo-oci-new
   oci:
     url: oci://ghcr.io/stefanprodan/charts/podinfo
 
-- name: podinfo-local-same
   local:
    path: chart
 ```
 - actions will change... TODO @schristoff
 
 ### BDD scenarios
-The following are (behavior driven development)[https://en.wikipedia.org/wiki/Behavior-driven_development] scenarios provide context of what Zarf will do in specific situations given the above decisions.
+The following are (behavior driven development)[https://en.wikipedia.org/wiki/Behavior-driven_development] scenarios to provide context of what Zarf will do in specific situations given the above decisions.
 
 #### v1 create with deprecated keys
 - *Given* Zarf version is v1
@@ -92,8 +88,8 @@ The following are (behavior driven development)[https://en.wikipedia.org/wiki/Be
 - *then* Zarf v0 will deploy the package without issues. If there are fields unrecognized by the v0 schema, then the user will be warned they are deploying a package that has features that do not exist in the current version of Zarf.
 
 ## Consequences
-- As long as the only deprecated features in a package have migration path, and the package was built after the feature was deprecated so migrations were run, Zarf will be successful both creating a package with v1 and deploying with prev1, and creating a package with prev1 and deploying with v1.
-- Users of deprecated group or cosignKeyPath might be frustrated if their packages, created prev1, error out on Zarf v1, however this is likely preferable to unexpected behavior occurring in the cluster.
+- As long as the only deprecated features in a package have migration path, and the package was built after the feature was deprecated so migrations were run, Zarf will be successful both creating a package with v1 and deploying with v0, and creating a package with v0 and deploying with v1.
+- Users of deprecated group, cosignKeyPath, and action.Wait outside of onDeploy might be frustrated if their packages, created v0, error out on Zarf v1, however this is preferable to unexpected behavior occurring in the cluster.
 - Users may be frustrated that they have to run `zarf dev update-schema` to edit their `zarf.yaml` to remove the deprecated fields and add `apiVersion`.
 - We will have to have two different schema types which will be mostly be duplicate code. However the original type should never change, which mitigates much of the issue.
 - By having a zarf.yaml and a zarfv1.yaml it will be easy to read and write from objects to yamls directly without having to include deprecated v0 fields in the v1 schema. However, this will also mean any new keys in v1 won't exist in the `zarf.yaml` so a v0 deploy of a v1 package will not be able to warn users of unrecognized keys, we will have to use some other method.
