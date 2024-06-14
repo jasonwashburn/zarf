@@ -97,6 +97,6 @@ type Severity int
 
 // ENUM of different severities of package errors
 const (
-	SevErr     Severity = 1
-	SevWarning Severity = 2
+	SevErr  Severity = 1
+	SevWarn Severity = 2
 )

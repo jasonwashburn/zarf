@@ -160,13 +160,3 @@ func (v Validator) hasSeverity(category category) bool {
 func (v Validator) HasErrors() bool {
 	return v.hasSeverity(categoryError)
 }
-
-func (v *Validator) addWarning(vmessage validatorMessage) {
-	vmessage.category = categoryWarning
-	v.findings = helpers.Unique(append(v.findings, vmessage))
-}
-
-func (v *Validator) addError(vMessage validatorMessage) {
-	vMessage.category = categoryError
-	v.findings = helpers.Unique(append(v.findings, vMessage))
-}

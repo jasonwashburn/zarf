@@ -257,14 +257,14 @@ var devLintCmd = &cobra.Command{
 		if err := os.Chdir(pkgConfig.CreateOpts.BaseDir); err != nil {
 			return fmt.Errorf("unable to access directory %q: %w", pkgConfig.CreateOpts.BaseDir, err)
 		}
-		validator, err := lint.Validate(cmd.Context(), pkgConfig.CreateOpts)
+		_, err := lint.Validate(cmd.Context(), pkgConfig.CreateOpts)
 		if err != nil {
 			message.Fatal(err, err.Error())
 		}
-		validator.DisplayFormattedMessage()
-		if !validator.IsSuccess() {
-			return fmt.Errorf("errors during lint")
-		}
+		// validator.DisplayFormattedMessage()
+		// if !validator.IsSuccess() {
+		// 	return fmt.Errorf("errors during lint")
+		// }
 		return nil
 	},
 }

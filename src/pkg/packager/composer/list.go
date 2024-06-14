@@ -268,7 +268,7 @@ func (ic *ImportChain) Migrate(build types.ZarfBuildData) (packageErrors []types
 				PackagePathOverride: node.relativeToHead,
 				PackageNameOverride: node.originalPackageName,
 				YqPath:              fmt.Sprintf("components.[%d]", node.index),
-				Category:            types.SevWarning,
+				Category:            types.SevWarn,
 			})
 		}
 		node = node.next
@@ -276,7 +276,7 @@ func (ic *ImportChain) Migrate(build types.ZarfBuildData) (packageErrors []types
 	if len(packageErrors) > 0 {
 		final := types.PackageError{
 			Description: fmt.Sprintf("Migrations were performed on the import chain of: %q", ic.head.Name),
-			Category:    types.SevWarning,
+			Category:    types.SevWarn,
 		}
 		packageErrors = append(packageErrors, final)
 	}
