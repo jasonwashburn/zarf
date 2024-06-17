@@ -74,26 +74,12 @@ func lintComponents(ctx context.Context, pkg types.ZarfPackage, createOpts types
 		}
 
 		chain, err := composer.NewImportChain(ctx, component, i, pkg.Metadata.Name, arch, createOpts.Flavor)
-		baseComponent := chain.Head()
 
-		var badImportYqPath string
-		if baseComponent != nil {
-			if baseComponent.Import.URL != "" {
-				badImportYqPath = fmt.Sprintf(".components.[%d].import.url", i)
-			}
-			if baseComponent.Import.Path != "" {
-				badImportYqPath = fmt.Sprintf(".components.[%d].import.path", i)
-			}
-		}
 		if err != nil {
-			pkgErrs = append(pkgErrs, types.PackageError{
-				Description: err.Error(),
-				YqPath:      badImportYqPath,
-				Category:    types.SevErr,
-			})
+			return nil, err
 		}
 
-		node := baseComponent
+		node := chain.Head()
 		for node != nil {
 			component := node.ZarfComponent
 			nodeErrs := checkForVarInComponentImport(component, node.Index())

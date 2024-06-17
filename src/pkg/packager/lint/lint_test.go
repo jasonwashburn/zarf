@@ -7,9 +7,7 @@ package lint
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/defenseunicorns/zarf/src/pkg/variables"
@@ -252,25 +250,19 @@ func TestValidateComponent(t *testing.T) {
 		require.Equal(t, input, actual)
 	})
 
-	// TODO
-	t.Run("Test composable components", func(t *testing.T) {
-		pathVar := "fake-path"
-		unpinnedImage := "unpinned:latest"
-		pathComponent := types.ZarfComponent{
-			Import: types.ZarfComponentImport{Path: pathVar},
-			Images: []string{unpinnedImage}}
+	t.Run("Test composable components with bad path", func(t *testing.T) {
 		zarfPackage := types.ZarfPackage{
-			Components: []types.ZarfComponent{pathComponent},
-			Metadata:   types.ZarfMetadata{Name: "test-zarf-package"},
+			Components: []types.ZarfComponent{
+				{
+					Import: types.ZarfComponentImport{Path: "bad-path"},
+				},
+			},
+			Metadata: types.ZarfMetadata{Name: "test-zarf-package"},
 		}
 
 		createOpts := types.ZarfCreateOptions{Flavor: "", BaseDir: "."}
-		pkgErrs, err := lintComponents(context.Background(), zarfPackage, createOpts)
-		require.NoError(t, err)
-		// Require.contains rather than equals since the error message changes from linux to windows
-		require.Contains(t, pkgErrs[0].Description, fmt.Sprintf("open %s", filepath.Join("fake-path", "zarf.yaml")))
-		require.Equal(t, ".components.[0].import.path", pkgErrs[0].YqPath)
-		require.Equal(t, unpinnedImage, pkgErrs[1].Item)
+		_, err := lintComponents(context.Background(), zarfPackage, createOpts)
+		require.Error(t, err)
 	})
 
 	t.Run("isImagePinned", func(t *testing.T) {

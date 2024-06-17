@@ -54,7 +54,7 @@ func PrintFindings(findings []types.PackageError, severity types.Severity, baseD
 			findings[i].PackageNameOverride = packageName
 		}
 		if findings[i].PackagePathOverride == "" {
-			findings[i].PackagePathOverride = baseDir
+			findings[i].PackagePathOverride = "."
 		}
 	}
 

@@ -35,8 +35,7 @@ func TestLint(t *testing.T) {
 		require.Error(t, err, "Require an exit code since there was warnings / errors")
 		strippedStderr := e2e.StripMessageFormatting(stderr)
 
-		key := "WHATEVER_IMAGE"
-		require.Contains(t, strippedStderr, lang.UnsetVarLintWarning)
+		key := "BUSYBOX_IMAGE"
 		require.Contains(t, strippedStderr, fmt.Sprintf(lang.PkgValidateTemplateDeprecation, key, key, key))
 		require.Contains(t, strippedStderr, ".components.[2].repos.[0] | Unpinned repository")
 		require.Contains(t, strippedStderr, ".metadata | Additional property description1 is not allowed")
@@ -44,12 +43,9 @@ func TestLint(t *testing.T) {
 		// Testing the import / compose on lint is working
 		require.Contains(t, strippedStderr, ".components.[1].images.[0] | Image not pinned with digest - registry.com:9001/whatever/image:latest")
 		// Testing import / compose + variables are working
-		require.Contains(t, strippedStderr, ".components.[2].images.[3] | Image not pinned with digest - busybox:latest")
-		require.Contains(t, strippedStderr, ".components.[3].import.path | Zarf does not evaluate variables at component.x.import.path - ###ZARF_PKG_TMPL_PATH###")
+		require.Contains(t, strippedStderr, ".components.[2].images.[2] | Image not pinned with digest - busybox:latest")
 		// Testing OCI imports get linted
 		require.Contains(t, strippedStderr, ".components.[0].images.[0] | Image not pinned with digest - defenseunicorns/zarf-game:multi-tile-dark")
-		// Testing a bad path leads to a finding in lint
-		require.Contains(t, strippedStderr, fmt.Sprintf(".components.[3].import.path | open %s", filepath.Join("###ZARF_PKG_TMPL_PATH###", "zarf.yaml")))
 
 		// Check flavors
 		require.NotContains(t, strippedStderr, "image-in-bad-flavor-component:unpinned")
