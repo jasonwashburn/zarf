@@ -39,9 +39,10 @@ When Zarf introduces new keys that they are not ready to promise long term suppo
 
 There are several other keys we plan to deprecate with automated migrations to new fields
 - `.metadata.aggregateChecksum` -> `.build.aggregateChecksum`
-- Metadata fields `image`, `documentation`, `url`, `authors`, `vendors` -> will become a map of `labels`
+- Metadata fields `image`, `documentation`, `url`, `authors`, `vendors` -> will become a map of `annotations`
 - `noWait` -> `wait` which will default to true. This change will happen on both `.components.manifests` and `components.charts`
 - `yolo` -> `airgap` which will default to true
+- `.components.actions.[default/onAny].maxRetries` -> `.components.actions.[default/onAny].retries`
 - charts will change to avoid [current confusion with keys](https://github.com/defenseunicorns/zarf/issues/2245). Exactly one of the following field will exist for each `components.charts`.
 ```yaml
   helm:
@@ -110,7 +111,7 @@ metadata:
   uncompressed: true
   architecture: amd64
   airgap: true # changed from yolo
-  labels: # All of these are v0 fields that will be deprecated in favor of a choose your own adventure label map
+  annotations: # All of these are v0 fields that will be deprecated in favor of a choose your own adventure label map
     authors: cool-kidz
     documentation: https://my-package-documentation.com
     source: https://my-git-server/my-package  
@@ -216,7 +217,7 @@ components:
       defaults:
         mute: true
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -227,7 +228,7 @@ components:
       before:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -256,7 +257,7 @@ components:
       after:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -285,7 +286,7 @@ components:
       onSuccess:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -314,7 +315,7 @@ components:
       onFailure:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -344,7 +345,7 @@ components:
       defaults:
         mute: true
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -355,7 +356,7 @@ components:
       before:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -384,7 +385,7 @@ components:
       after:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -413,7 +414,7 @@ components:
       onSuccess:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -442,7 +443,7 @@ components:
       onFailure:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -472,7 +473,7 @@ components:
       defaults:
         mute: true
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -483,7 +484,7 @@ components:
       before:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -512,7 +513,7 @@ components:
       after:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -541,7 +542,7 @@ components:
       onSuccess:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
@@ -570,7 +571,7 @@ components:
       onFailure:
       - mute: false
         maxTotalSeconds: 0
-        maxRetries: 0
+        retries: 0
         dir: dir
         env:
         - ENV_VAR=FOO
