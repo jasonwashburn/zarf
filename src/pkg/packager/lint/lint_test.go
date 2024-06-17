@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/defenseunicorns/zarf/src/pkg/packager/composer"
 	"github.com/defenseunicorns/zarf/src/pkg/variables"
 	"github.com/defenseunicorns/zarf/src/types"
 	goyaml "github.com/goccy/go-yaml"
@@ -183,14 +182,14 @@ func TestValidateComponent(t *testing.T) {
 	t.Run("Path template in component import failure", func(t *testing.T) {
 		pathVar := "###ZARF_PKG_TMPL_PATH###"
 		pathComponent := types.ZarfComponent{Import: types.ZarfComponentImport{Path: pathVar}}
-		pkgErrs := checkForVarInComponentImport(&composer.Node{ZarfComponent: pathComponent})
+		pkgErrs := checkForVarInComponentImport(pathComponent, 0)
 		require.Equal(t, pathVar, pkgErrs[0].Item)
 	})
 
 	t.Run("OCI template in component import failure", func(t *testing.T) {
 		ociPathVar := "oci://###ZARF_PKG_TMPL_PATH###"
 		URLComponent := types.ZarfComponent{Import: types.ZarfComponentImport{URL: ociPathVar}}
-		pkgErrs := checkForVarInComponentImport(&composer.Node{ZarfComponent: URLComponent})
+		pkgErrs := checkForVarInComponentImport(URLComponent, 0)
 		require.Equal(t, ociPathVar, pkgErrs[0].Item)
 	})
 
@@ -200,7 +199,7 @@ func TestValidateComponent(t *testing.T) {
 			unpinnedRepo,
 			"https://dev.azure.com/defenseunicorns/zarf-public-test/_git/zarf-public-test@v0.0.1",
 		}}
-		pkgErrs := checkForUnpinnedRepos(&composer.Node{ZarfComponent: component})
+		pkgErrs := checkForUnpinnedRepos(component, 0)
 		require.Equal(t, unpinnedRepo, pkgErrs[0].Item)
 		require.Len(t, pkgErrs, 1)
 	})
@@ -213,7 +212,7 @@ func TestValidateComponent(t *testing.T) {
 			"busybox:latest@sha256:3fbc632167424a6d997e74f52b878d7cc478225cffac6bc977eedfe51c7f4e79",
 			badImage,
 		}}
-		pkgErrs := checkForUnpinnedImages(&composer.Node{ZarfComponent: component})
+		pkgErrs := checkForUnpinnedImages(component, 0)
 		require.Equal(t, unpinnedImage, pkgErrs[0].Item)
 		require.Equal(t, badImage, pkgErrs[1].Item)
 		require.Len(t, pkgErrs, 2)
@@ -235,7 +234,7 @@ func TestValidateComponent(t *testing.T) {
 			},
 		}
 		component := types.ZarfComponent{Files: zarfFiles}
-		pkgErrs := checkForUnpinnedFiles(&composer.Node{ZarfComponent: component})
+		pkgErrs := checkForUnpinnedFiles(component, 0)
 		require.Equal(t, fileURL, pkgErrs[0].Item)
 		require.Len(t, pkgErrs, 1)
 	})
@@ -253,6 +252,7 @@ func TestValidateComponent(t *testing.T) {
 		require.Equal(t, input, actual)
 	})
 
+	// TODO
 	t.Run("Test composable components", func(t *testing.T) {
 		pathVar := "fake-path"
 		unpinnedImage := "unpinned:latest"
@@ -321,36 +321,46 @@ func TestValidateComponent(t *testing.T) {
 func TestValidator(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		validator Validator
-		severity  category
-		expected  bool
+		severity types.Severity
+		expected bool
+		findings []types.PackageError
 	}{
 		{
-			validator: Validator{findings: []validatorMessage{
+			findings: []types.PackageError{
 				{
-					category:    categoryError,
-					description: "1 error",
+					Category: types.SevErr,
 				},
-			}},
-			severity: categoryError,
+			},
+			severity: types.SevErr,
 			expected: true,
 		},
 		{
-			validator: Validator{findings: []validatorMessage{
+			findings: []types.PackageError{
 				{
-					category:    categoryWarning,
-					description: "1 error",
+					Category: types.SevWarn,
 				},
-			}},
-			severity: categoryError,
-			expected: false,
+			},
+			severity: types.SevWarn,
+			expected: true,
+		},
+		{
+			findings: []types.PackageError{
+				{
+					Category: types.SevWarn,
+				},
+				{
+					Category: types.SevErr,
+				},
+			},
+			severity: types.SevErr,
+			expected: true,
 		},
 	}
 	for _, tc := range tests {
 		tc := tc
 		t.Run("test has severity", func(t *testing.T) {
 			t.Parallel()
-			tc.validator.hasSeverity(categoryError)
+			require.Equal(t, tc.expected, hasSeverity(tc.findings, tc.severity))
 		})
 	}
 }

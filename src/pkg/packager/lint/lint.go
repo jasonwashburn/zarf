@@ -28,12 +28,11 @@ type FileLoader interface {
 // ZarfSchema is exported so main.go can embed the schema file
 var ZarfSchema FileLoader
 
-// Validate validates a zarf file against the zarf schema, returns *validator with warnings or errors if they exist
-// along with an error if the validation itself failed
+// Validate validates a zarf file
 func Validate(ctx context.Context, createOpts types.ZarfCreateOptions) ([]types.PackageError, error) {
 	var pkg types.ZarfPackage
 	var pkgErrs []types.PackageError
-	if err := utils.ReadYaml(layout.ZarfYAML, pkg); err != nil {
+	if err := utils.ReadYaml(layout.ZarfYAML, &pkg); err != nil {
 		return nil, err
 	}
 	compFindings, err := lintComponents(ctx, pkg, createOpts)
@@ -63,6 +62,11 @@ func Validate(ctx context.Context, createOpts types.ZarfCreateOptions) ([]types.
 
 func lintComponents(ctx context.Context, pkg types.ZarfPackage, createOpts types.ZarfCreateOptions) ([]types.PackageError, error) {
 	var pkgErrs []types.PackageError
+	templateMap := map[string]string{}
+	for key, value := range createOpts.SetVariables {
+		templateMap[fmt.Sprintf("%s%s###", types.ZarfPackageTemplatePrefix, key)] = value
+	}
+
 	for i, component := range pkg.Components {
 		arch := config.GetArch(pkg.Metadata.Architecture)
 		if !composer.CompatibleComponent(component, arch, createOpts.Flavor) {
@@ -91,8 +95,17 @@ func lintComponents(ctx context.Context, pkg types.ZarfPackage, createOpts types
 
 		node := baseComponent
 		for node != nil {
-			pkgErrs = append(pkgErrs, checkForVarInComponentImport(node)...)
-			pkgErrs = append(pkgErrs, lintComponent(node)...)
+			component := node.ZarfComponent
+			nodeErrs := checkForVarInComponentImport(component, node.Index())
+			if err := utils.ReloadYamlTemplate(&component, templateMap); err != nil {
+				return nil, err
+			}
+			nodeErrs = append(nodeErrs, checkComponent(component, node.Index())...)
+			for i := range nodeErrs {
+				nodeErrs[i].PackagePathOverride = node.ImportLocation()
+				nodeErrs[i].PackageNameOverride = node.OriginalPackageName()
+			}
+			pkgErrs = append(pkgErrs, nodeErrs...)
 			node = node.Next()
 		}
 	}
@@ -116,97 +129,87 @@ func isPinnedRepo(repo string) bool {
 	return (strings.Contains(repo, "@"))
 }
 
-func lintComponent(node *composer.Node) []types.PackageError {
+// checkComponent runs lint rules against a component
+func checkComponent(c types.ZarfComponent, i int) []types.PackageError {
 	var pkgErrs []types.PackageError
-	pkgErrs = append(pkgErrs, checkForUnpinnedRepos(node)...)
-	pkgErrs = append(pkgErrs, checkForUnpinnedImages(node)...)
-	pkgErrs = append(pkgErrs, checkForUnpinnedFiles(node)...)
+	pkgErrs = append(pkgErrs, checkForUnpinnedRepos(c, i)...)
+	pkgErrs = append(pkgErrs, checkForUnpinnedImages(c, i)...)
+	pkgErrs = append(pkgErrs, checkForUnpinnedFiles(c, i)...)
 	return pkgErrs
 }
 
-func checkForUnpinnedRepos(node *composer.Node) []types.PackageError {
+func checkForUnpinnedRepos(c types.ZarfComponent, i int) []types.PackageError {
 	var pkgErrs []types.PackageError
-	for j, repo := range node.Repos {
-		repoYqPath := fmt.Sprintf(".components.[%d].repos.[%d]", node.Index(), j)
+	for j, repo := range c.Repos {
+		repoYqPath := fmt.Sprintf(".components.[%d].repos.[%d]", i, j)
 		if !isPinnedRepo(repo) {
 			pkgErrs = append(pkgErrs, types.PackageError{
-				YqPath:              repoYqPath,
-				PackagePathOverride: node.ImportLocation(),
-				PackageNameOverride: node.OriginalPackageName(),
-				Description:         "Unpinned repository",
-				Item:                repo,
-				Category:            types.SevWarn,
+				YqPath:      repoYqPath,
+				Description: "Unpinned repository",
+				Item:        repo,
+				Category:    types.SevWarn,
 			})
 		}
 	}
 	return pkgErrs
 }
 
-func checkForUnpinnedImages(node *composer.Node) []types.PackageError {
+func checkForUnpinnedImages(c types.ZarfComponent, i int) []types.PackageError {
 	var pkgErrs []types.PackageError
-	for j, image := range node.Images {
-		imageYqPath := fmt.Sprintf(".components.[%d].images.[%d]", node.Index(), j)
+	for j, image := range c.Images {
+		imageYqPath := fmt.Sprintf(".components.[%d].images.[%d]", i, j)
 		pinnedImage, err := isPinnedImage(image)
 		if err != nil {
 			pkgErrs = append(pkgErrs, types.PackageError{
-				YqPath:              imageYqPath,
-				PackagePathOverride: node.ImportLocation(),
-				PackageNameOverride: node.OriginalPackageName(),
-				Description:         "Invalid image reference",
-				Item:                image,
-				Category:            types.SevErr,
+				YqPath:      imageYqPath,
+				Description: "Invalid image reference",
+				Item:        image,
+				Category:    types.SevErr,
 			})
 			continue
 		}
 		if !pinnedImage {
 			pkgErrs = append(pkgErrs, types.PackageError{
-				YqPath:              imageYqPath,
-				PackagePathOverride: node.ImportLocation(),
-				PackageNameOverride: node.OriginalPackageName(),
-				Description:         "Image not pinned with digest",
-				Item:                image,
-				Category:            types.SevWarn,
+				YqPath:      imageYqPath,
+				Description: "Image not pinned with digest",
+				Item:        image,
+				Category:    types.SevWarn,
 			})
 		}
 	}
 	return pkgErrs
 }
 
-func checkForUnpinnedFiles(node *composer.Node) []types.PackageError {
+func checkForUnpinnedFiles(c types.ZarfComponent, i int) []types.PackageError {
 	var pkgErrs []types.PackageError
-	for j, file := range node.Files {
-		fileYqPath := fmt.Sprintf(".components.[%d].files.[%d]", node.Index(), j)
+	for j, file := range c.Files {
+		fileYqPath := fmt.Sprintf(".components.[%d].files.[%d]", i, j)
 		if file.Shasum == "" && helpers.IsURL(file.Source) {
 			pkgErrs = append(pkgErrs, types.PackageError{
-				YqPath:              fileYqPath,
-				PackagePathOverride: node.ImportLocation(),
-				PackageNameOverride: node.OriginalPackageName(),
-				Description:         "No shasum for remote file",
-				Item:                file.Source,
+				YqPath:      fileYqPath,
+				Description: "No shasum for remote file",
+				Item:        file.Source,
 			})
 		}
 	}
 	return pkgErrs
 }
 
-func checkForVarInComponentImport(node *composer.Node) []types.PackageError {
+// TODO, this should be moved into the schema or we should add functionality so this is allowed
+func checkForVarInComponentImport(c types.ZarfComponent, i int) []types.PackageError {
 	var pkgErrs []types.PackageError
-	if strings.Contains(node.Import.Path, types.ZarfPackageTemplatePrefix) {
+	if strings.Contains(c.Import.Path, types.ZarfPackageTemplatePrefix) {
 		pkgErrs = append(pkgErrs, types.PackageError{
-			YqPath:              fmt.Sprintf(".components.[%d].import.path", node.Index()),
-			PackagePathOverride: node.ImportLocation(),
-			PackageNameOverride: node.OriginalPackageName(),
-			Description:         "Zarf does not evaluate variables at component.x.import.path",
-			Item:                node.Import.Path,
+			YqPath:      fmt.Sprintf(".components.[%d].import.path", i),
+			Description: "Zarf does not evaluate variables at component.x.import.path",
+			Item:        c.Import.Path,
 		})
 	}
-	if strings.Contains(node.Import.URL, types.ZarfPackageTemplatePrefix) {
+	if strings.Contains(c.Import.URL, types.ZarfPackageTemplatePrefix) {
 		pkgErrs = append(pkgErrs, types.PackageError{
-			YqPath:              fmt.Sprintf(".components.[%d].import.url", node.Index()),
-			PackagePathOverride: node.ImportLocation(),
-			PackageNameOverride: node.OriginalPackageName(),
-			Description:         "Zarf does not evaluate variables at component.x.import.url",
-			Item:                node.Import.URL,
+			YqPath:      fmt.Sprintf(".components.[%d].import.url", i),
+			Description: "Zarf does not evaluate variables at component.x.import.url",
+			Item:        c.Import.URL,
 		})
 	}
 	return pkgErrs
@@ -238,6 +241,7 @@ func validateSchema(jsonSchema []byte, untypedZarfPackage interface{}) ([]types.
 			pkgErrs = append(pkgErrs, types.PackageError{
 				YqPath:      makeFieldPathYqCompat(schemaErr.Field()),
 				Description: schemaErr.Description(),
+				Category:    types.SevErr,
 			})
 		}
 	}

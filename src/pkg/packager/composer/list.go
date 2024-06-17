@@ -259,12 +259,12 @@ func (ic *ImportChain) String() string {
 // Migrate performs migrations on the import chain
 func (ic *ImportChain) Migrate(build types.ZarfBuildData) (packageErrors []types.PackageError) {
 	node := ic.head
+	var warnings []string
 	for node != nil {
-		migrated, warnings := deprecated.MigrateComponent(build, node.ZarfComponent)
-		node.ZarfComponent = migrated
-		for _, w := range warnings {
+		node.ZarfComponent, warnings = deprecated.MigrateComponent(build, node.ZarfComponent)
+		for _, warning := range warnings {
 			packageErrors = append(packageErrors, types.PackageError{
-				Description:         w,
+				Description:         warning,
 				PackagePathOverride: node.relativeToHead,
 				PackageNameOverride: node.originalPackageName,
 				YqPath:              fmt.Sprintf("components.[%d]", node.index),
@@ -273,7 +273,7 @@ func (ic *ImportChain) Migrate(build types.ZarfBuildData) (packageErrors []types
 		}
 		node = node.next
 	}
-	if len(packageErrors) > 0 {
+	if len(warnings) > 0 {
 		final := types.PackageError{
 			Description: fmt.Sprintf("Migrations were performed on the import chain of: %q", ic.head.Name),
 			Category:    types.SevWarn,

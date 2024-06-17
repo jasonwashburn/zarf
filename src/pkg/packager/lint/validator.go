@@ -14,87 +14,53 @@ import (
 	"github.com/fatih/color"
 )
 
-type category int
-
-const (
-	categoryError   category = 1
-	categoryWarning category = 2
-)
-
-type validatorMessage struct {
-	yqPath         string
-	description    string
-	item           string
-	packageRelPath string
-	packageName    string
-	category       category
+func itemizedDescription(description string, item string) string {
+	if item == "" {
+		return description
+	}
+	return fmt.Sprintf("%s - %s", description, item)
 }
 
-func (c category) String() string {
-	if c == categoryError {
+func colorWrapSev(s types.Severity) string {
+	if s == types.SevErr {
 		return message.ColorWrap("Error", color.FgRed)
-	} else if c == categoryWarning {
+	} else if s == types.SevWarn {
 		return message.ColorWrap("Warning", color.FgYellow)
 	}
 	return ""
 }
 
-func (vm validatorMessage) Description() string {
-	if vm.item != "" {
-		vm.item = fmt.Sprintf(" - %s", vm.item)
+func packageRelPathToUser(baseDir string, relPath string) string {
+	if helpers.IsOCIURL(relPath) {
+		return relPath
 	}
-	return fmt.Sprintf("%s%s", vm.description, vm.item)
+	return filepath.Join(baseDir, relPath)
 }
 
-// Validator holds the warnings/errors and messaging that we get from validation
-type Validator struct {
-	findings    []validatorMessage
-	zarfPackage types.ZarfPackage
-	baseDir     string
-}
-
-// DisplayFormattedMessage message sent to user based on validator results
-func (v Validator) DisplayFormattedMessage() {
-	if !v.hasFindings() {
-		message.Successf("0 findings for %q", v.zarfPackage.Metadata.Name)
-	}
-	v.printValidationTable(categoryWarning)
-}
-
-// IsSuccess returns true if there are not any errors
-func (v Validator) IsSuccess() bool {
-	for _, finding := range v.findings {
-		if finding.category == categoryError {
-			return false
-		}
-	}
-	return true
-}
-
-func (v Validator) packageRelPathToUser(vm validatorMessage) string {
-	if helpers.IsOCIURL(vm.packageRelPath) {
-		return vm.packageRelPath
-	}
-	return filepath.Join(v.baseDir, vm.packageRelPath)
-}
-
-// PrintErrorTable prints out a table with all the errors found by the validator
-func (v Validator) PrintErrorTable() {
-	v.printValidationTable(categoryError)
-}
-
-func (v Validator) printValidationTable(severity category) {
-	if !v.hasSeverity(severity) {
+// PrintFindings prints a table of the findings with the given severity or higher
+func PrintFindings(findings []types.PackageError, severity types.Severity, baseDir string, packageName string) {
+	if !hasSeverity(findings, severity) {
 		return
 	}
 
-	v.findings = helpers.RemoveMatches(v.findings, func(finding validatorMessage) bool {
-		return finding.category > severity
+	findings = helpers.RemoveMatches(findings, func(finding types.PackageError) bool {
+		return finding.Category > severity
 	})
+	if baseDir == "" {
+		baseDir = "."
+	}
+	for i := range findings {
+		if findings[i].PackageNameOverride == "" {
+			findings[i].PackageNameOverride = packageName
+		}
+		if findings[i].PackagePathOverride == "" {
+			findings[i].PackagePathOverride = baseDir
+		}
+	}
 
-	mapOfFindingsByPath := make(map[string][]validatorMessage)
-	for _, finding := range v.findings {
-		mapOfFindingsByPath[finding.packageRelPath] = append(mapOfFindingsByPath[finding.packageRelPath], finding)
+	mapOfFindingsByPath := make(map[string][]types.PackageError)
+	for _, finding := range findings {
+		mapOfFindingsByPath[finding.PackagePathOverride] = append(mapOfFindingsByPath[finding.PackagePathOverride], finding)
 	}
 
 	header := []string{"Type", "Path", "Message"}
@@ -102,25 +68,30 @@ func (v Validator) printValidationTable(severity category) {
 	for packageRelPath, findings := range mapOfFindingsByPath {
 		lintData := [][]string{}
 		for _, finding := range findings {
-			lintData = append(lintData, []string{finding.category.String(), finding.getPath(), finding.Description()})
+			lintData = append(lintData, []string{
+				colorWrapSev(finding.Category),
+				pathColorWrap(finding.YqPath),
+				itemizedDescription(finding.Description, finding.Item),
+			})
 		}
-		message.Notef("Linting package %q at %s", findings[0].packageName, v.packageRelPathToUser(findings[0]))
+		message.Notef("Linting package %q at %s", findings[0].PackageNameOverride,
+			packageRelPathToUser(baseDir, findings[0].PackagePathOverride))
 		message.Table(header, lintData)
-		message.Info(v.getFormattedFindingCount(packageRelPath, findings[0].packageName))
+		message.Info(getFormattedFindingCount(findings, packageRelPath, findings[0].PackageNameOverride))
 	}
 }
 
-func (v Validator) getFormattedFindingCount(relPath string, packageName string) string {
+func getFormattedFindingCount(pkgErrs []types.PackageError, relPath string, packageName string) string {
 	warningCount := 0
 	errorCount := 0
-	for _, finding := range v.findings {
-		if finding.packageRelPath != relPath {
+	for _, finding := range pkgErrs {
+		if finding.PackagePathOverride != relPath {
 			continue
 		}
-		if finding.category == categoryWarning {
+		if finding.Category == types.SevWarn {
 			warningCount++
 		}
-		if finding.category == categoryError {
+		if finding.Category == types.SevErr {
 			errorCount++
 		}
 	}
@@ -136,20 +107,16 @@ func (v Validator) getFormattedFindingCount(relPath string, packageName string) 
 		warningCount, wordWarning, errorCount, wordError, packageName)
 }
 
-func (vm validatorMessage) getPath() string {
-	if vm.yqPath == "" {
+func pathColorWrap(path string) string {
+	if path == "" {
 		return ""
 	}
-	return message.ColorWrap(vm.yqPath, color.FgCyan)
+	return message.ColorWrap(path, color.FgCyan)
 }
 
-func (v Validator) hasFindings() bool {
-	return len(v.findings) > 0
-}
-
-func (v Validator) hasSeverity(category category) bool {
-	for _, finding := range v.findings {
-		if finding.category <= category {
+func hasSeverity(findings []types.PackageError, category types.Severity) bool {
+	for _, finding := range findings {
+		if finding.Category <= category {
 			return true
 		}
 	}
@@ -157,6 +124,6 @@ func (v Validator) hasSeverity(category category) bool {
 }
 
 // HasErrors returns true if the validator finds errors in the Zarf package
-func (v Validator) HasErrors() bool {
-	return v.hasSeverity(categoryError)
+func HasErrors(findings []types.PackageError) bool {
+	return hasSeverity(findings, types.SevErr)
 }

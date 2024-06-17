@@ -79,6 +79,7 @@ func (pp *PackagePaths) ReadZarfYAML() (pkg types.ZarfPackage, warnings []types.
 				warnings = append(warnings, types.PackageError{
 					Description: warning,
 					YqPath:      fmt.Sprintf(".components[%d]", idx),
+					Category:    types.SevWarn,
 				})
 			}
 		}
