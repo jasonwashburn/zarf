@@ -44,7 +44,6 @@ func readAndUnmarshalYaml[T interface{}](t *testing.T, yamlString string) T {
 	return unmarshalledYaml
 }
 
-// TODO t.parallel everything
 func TestValidateSchema(t *testing.T) {
 	t.Parallel()
 	getZarfSchema := func(t *testing.T) []byte {

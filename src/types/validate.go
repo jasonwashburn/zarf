@@ -261,12 +261,12 @@ func (chart ZarfChart) Validate() error {
 		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrChartName, chart.Name, ZarfMaxChartNameLength))
 	}
 
-	if chart.Version == "" {
-		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrChartVersion, chart.Name))
-	}
-
 	if chart.Namespace == "" {
 		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrChartNamespaceMissing, chart.Name))
+	}
+
+	if chart.Version == "" {
+		err = errors.Join(err, fmt.Errorf(lang.PkgValidateErrChartVersion, chart.Name))
 	}
 
 	// Must have a url or localPath (and not both)
