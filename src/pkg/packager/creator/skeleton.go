@@ -76,7 +76,7 @@ func (sc *SkeletonCreator) LoadPackageDefinition(ctx context.Context, src *layou
 
 // Validate ensures that the package is valid
 func (sc *SkeletonCreator) Validate(_ context.Context, pkg types.ZarfPackage) error {
-	return lintPackage(sc.createOpts, pkg)
+	return validate(sc.createOpts, pkg)
 }
 
 // LoadPackageDefinitionWithValidate loads and validates the zarf package

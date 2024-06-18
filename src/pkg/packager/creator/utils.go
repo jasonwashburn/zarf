@@ -18,7 +18,7 @@ import (
 	"github.com/defenseunicorns/zarf/src/types"
 )
 
-func lintPackage(createOpts types.ZarfCreateOptions, pkg types.ZarfPackage) error {
+func validate(createOpts types.ZarfCreateOptions, pkg types.ZarfPackage) error {
 	if err := pkg.Validate(); err != nil {
 		return fmt.Errorf("package validation failed: %w", err)
 	}

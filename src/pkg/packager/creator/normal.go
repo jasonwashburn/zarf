@@ -124,7 +124,7 @@ func (pc *PackageCreator) LoadPackageDefinition(ctx context.Context, src *layout
 
 // Validate ensures that the package is valid
 func (pc *PackageCreator) Validate(_ context.Context, pkg types.ZarfPackage) error {
-	return lintPackage(pc.createOpts, pkg)
+	return validate(pc.createOpts, pkg)
 }
 
 // LoadPackageDefinitionWithValidate loads and validates a zarf.yaml file during package create

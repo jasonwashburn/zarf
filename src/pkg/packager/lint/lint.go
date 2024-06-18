@@ -102,7 +102,6 @@ func isPinnedImage(image string) (bool, error) {
 	transformedImage, err := transform.ParseImageRef(image)
 	if err != nil {
 		if strings.Contains(image, types.ZarfPackageTemplatePrefix) ||
-			//TODO check if it's even reasonable to use a variable here
 			strings.Contains(image, types.ZarfPackageVariablePrefix) {
 			return true, nil
 		}
@@ -148,9 +147,9 @@ func checkForUnpinnedImages(c types.ZarfComponent, i int) []types.PackageError {
 		if err != nil {
 			pkgErrs = append(pkgErrs, types.PackageError{
 				YqPath:      imageYqPath,
-				Description: "Invalid image reference",
+				Description: "Failed to parse image reference",
 				Item:        image,
-				Category:    types.SevErr,
+				Category:    types.SevWarn,
 			})
 			continue
 		}
@@ -175,6 +174,7 @@ func checkForUnpinnedFiles(c types.ZarfComponent, i int) []types.PackageError {
 				YqPath:      fileYqPath,
 				Description: "No shasum for remote file",
 				Item:        file.Source,
+				Category:    types.SevWarn,
 			})
 		}
 	}
@@ -189,6 +189,7 @@ func checkForVarInComponentImport(c types.ZarfComponent, i int) []types.PackageE
 			YqPath:      fmt.Sprintf(".components.[%d].import.path", i),
 			Description: "Zarf does not evaluate variables at component.x.import.path",
 			Item:        c.Import.Path,
+			Category:    types.SevWarn,
 		})
 	}
 	if strings.Contains(c.Import.URL, types.ZarfPackageTemplatePrefix) {
@@ -196,6 +197,7 @@ func checkForVarInComponentImport(c types.ZarfComponent, i int) []types.PackageE
 			YqPath:      fmt.Sprintf(".components.[%d].import.url", i),
 			Description: "Zarf does not evaluate variables at component.x.import.url",
 			Item:        c.Import.URL,
+			Category:    types.SevWarn,
 		})
 	}
 	return pkgErrs

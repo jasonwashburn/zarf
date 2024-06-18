@@ -30,6 +30,7 @@ func FillActiveTemplate(pkg types.ZarfPackage, setVariables map[string]string) (
 			if deprecated {
 				warnings = append(warnings, types.PackageError{
 					Description: fmt.Sprintf(lang.PkgValidateTemplateDeprecation, key, key, key),
+					Category:    types.SevWarn,
 				})
 			}
 

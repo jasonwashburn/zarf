@@ -17,7 +17,7 @@ import (
 )
 
 // When we want to test the absence of a field we can't do it through a struct
-// for non pointer fields since it will be auto initialized
+// since non pointer fields will be auto initialized
 const badZarfPackage = `
 kind: ZarfInitConfig
 metadata:
@@ -46,6 +46,7 @@ func readAndUnmarshalYaml[T interface{}](t *testing.T, yamlString string) T {
 
 // TODO t.parallel everything
 func TestValidateSchema(t *testing.T) {
+	t.Parallel()
 	getZarfSchema := func(t *testing.T) []byte {
 		t.Helper()
 		file, err := os.ReadFile("../../../../zarf.schema.json")
@@ -145,8 +146,10 @@ func TestValidateSchema(t *testing.T) {
 			},
 		},
 	}
-	for _, tt := range tests {
+	for _, tc := range tests {
+		tt := tc
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			schemaErrs, err := runSchema(getZarfSchema(t), tt.pkg)
 			require.NoError(t, err)
 			var schemaStrings []string
@@ -158,6 +161,7 @@ func TestValidateSchema(t *testing.T) {
 	}
 
 	t.Run("validate schema fail with errors not possible from object", func(t *testing.T) {
+		t.Parallel()
 		unmarshalledYaml := readAndUnmarshalYaml[interface{}](t, badZarfPackage)
 		schemaErrs, err := runSchema(getZarfSchema(t), unmarshalledYaml)
 		require.NoError(t, err)
@@ -176,8 +180,9 @@ func TestValidateSchema(t *testing.T) {
 }
 
 func TestValidateComponent(t *testing.T) {
-
+	t.Parallel()
 	t.Run("Path template in component import failure", func(t *testing.T) {
+		t.Parallel()
 		pathVar := "###ZARF_PKG_TMPL_PATH###"
 		pathComponent := types.ZarfComponent{Import: types.ZarfComponentImport{Path: pathVar}}
 		pkgErrs := checkForVarInComponentImport(pathComponent, 0)
@@ -185,6 +190,7 @@ func TestValidateComponent(t *testing.T) {
 	})
 
 	t.Run("OCI template in component import failure", func(t *testing.T) {
+		t.Parallel()
 		ociPathVar := "oci://###ZARF_PKG_TMPL_PATH###"
 		URLComponent := types.ZarfComponent{Import: types.ZarfComponentImport{URL: ociPathVar}}
 		pkgErrs := checkForVarInComponentImport(URLComponent, 0)
@@ -192,6 +198,7 @@ func TestValidateComponent(t *testing.T) {
 	})
 
 	t.Run("Unpinnned repo warning", func(t *testing.T) {
+		t.Parallel()
 		unpinnedRepo := "https://github.com/defenseunicorns/zarf-public-test.git"
 		component := types.ZarfComponent{Repos: []string{
 			unpinnedRepo,
@@ -203,6 +210,7 @@ func TestValidateComponent(t *testing.T) {
 	})
 
 	t.Run("Unpinnned image warning", func(t *testing.T) {
+		t.Parallel()
 		unpinnedImage := "registry.com:9001/whatever/image:1.0.0"
 		badImage := "badimage:badimage@@sha256:3fbc632167424a6d997e74f5"
 		component := types.ZarfComponent{Images: []string{
@@ -217,6 +225,7 @@ func TestValidateComponent(t *testing.T) {
 	})
 
 	t.Run("Unpinnned file warning", func(t *testing.T) {
+		t.Parallel()
 		fileURL := "http://example.com/file.zip"
 		localFile := "local.txt"
 		zarfFiles := []types.ZarfFile{
@@ -238,6 +247,7 @@ func TestValidateComponent(t *testing.T) {
 	})
 
 	t.Run("Wrap standalone numbers in bracket", func(t *testing.T) {
+		t.Parallel()
 		input := "components12.12.import.path"
 		expected := ".components12.[12].import.path"
 		actual := makeFieldPathYqCompat(input)
@@ -245,12 +255,14 @@ func TestValidateComponent(t *testing.T) {
 	})
 
 	t.Run("root doesn't change", func(t *testing.T) {
+		t.Parallel()
 		input := "(root)"
 		actual := makeFieldPathYqCompat(input)
 		require.Equal(t, input, actual)
 	})
 
 	t.Run("Test composable components with bad path", func(t *testing.T) {
+		t.Parallel()
 		zarfPackage := types.ZarfPackage{
 			Components: []types.ZarfComponent{
 				{

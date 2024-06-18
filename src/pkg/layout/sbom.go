@@ -84,9 +84,9 @@ func (s *SBOMs) StageSBOMViewFiles() (sbomViewFiles []string, warnings []types.P
 
 		if _, err := s.OutputSBOMFiles(SBOMDir, ""); err != nil {
 			// Don't stop the deployment, let the user decide if they want to continue the deployment
-			//TODO maybe this should be a message.Warn
 			warnings = append(warnings, types.PackageError{
 				Description: fmt.Sprintf("Unable to process the SBOM files for this package: %s", err.Error()),
+				Category:    types.SevWarn,
 			})
 		}
 	}

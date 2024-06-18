@@ -67,6 +67,7 @@ func (pp *PackagePaths) ReadZarfYAML() (pkg types.ZarfPackage, warnings []types.
 	if pp.IsLegacyLayout() {
 		warnings = append(warnings, types.PackageError{
 			Description: "Detected deprecated package layout, migrating to new layout - support for this package will be dropped in v1.0.0",
+			Category:    types.SevWarn,
 		})
 	}
 
