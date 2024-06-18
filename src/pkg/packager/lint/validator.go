@@ -27,7 +27,7 @@ func colorWrapSev(s types.Severity) string {
 	} else if s == types.SevWarn {
 		return message.ColorWrap("Warning", color.FgYellow)
 	}
-	return ""
+	return "unknown"
 }
 
 func packageRelPathToUser(baseDir string, relPath string) string {
@@ -46,9 +46,6 @@ func PrintFindings(findings []types.PackageError, severity types.Severity, baseD
 	findings = helpers.RemoveMatches(findings, func(finding types.PackageError) bool {
 		return finding.Category > severity
 	})
-	if baseDir == "" {
-		baseDir = "."
-	}
 	for i := range findings {
 		if findings[i].PackageNameOverride == "" {
 			findings[i].PackageNameOverride = packageName
