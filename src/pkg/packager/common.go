@@ -269,7 +269,7 @@ func (p *Packager) validateLastNonBreakingVersion() (err error) {
 	cliSemVer, err := semver.NewVersion(cliVersion)
 	if err != nil {
 		warning := fmt.Sprintf(lang.CmdPackageDeployInvalidCLIVersionWarn, config.CLIVersion)
-		p.warnings = append(p.warnings, types.PackageError{Description: warning})
+		p.warnings = append(p.warnings, types.PackageError{Description: warning, Category: types.SevWarn})
 		return nil
 	}
 
@@ -280,7 +280,7 @@ func (p *Packager) validateLastNonBreakingVersion() (err error) {
 			lastNonBreakingVersion,
 			lastNonBreakingVersion,
 		)
-		p.warnings = append(p.warnings, types.PackageError{Description: warning})
+		p.warnings = append(p.warnings, types.PackageError{Description: warning, Category: types.SevWarn})
 	}
 
 	return nil

@@ -129,7 +129,7 @@ func TestValidateLastNonBreakingVersion(t *testing.T) {
 		cliVersion             string
 		lastNonBreakingVersion string
 		expectedErrorMessage   string
-		expectedWarningMessage string
+		expectedWarningMessage types.PackageError
 		returnError            bool
 		throwWarning           bool
 	}
@@ -141,12 +141,15 @@ func TestValidateLastNonBreakingVersion(t *testing.T) {
 			lastNonBreakingVersion: "v0.27.0",
 			returnError:            false,
 			throwWarning:           true,
-			expectedWarningMessage: fmt.Sprintf(
-				lang.CmdPackageDeployValidateLastNonBreakingVersionWarn,
-				"v0.26.4",
-				"v0.27.0",
-				"v0.27.0",
-			),
+			expectedWarningMessage: types.PackageError{
+				Description: fmt.Sprintf(
+					lang.CmdPackageDeployValidateLastNonBreakingVersionWarn,
+					"v0.26.4",
+					"v0.27.0",
+					"v0.27.0",
+				),
+				Category: types.SevWarn,
+			},
 		},
 		{
 			name:                   "invalid semantic version (CLI version)",
@@ -154,7 +157,10 @@ func TestValidateLastNonBreakingVersion(t *testing.T) {
 			lastNonBreakingVersion: "v0.0.1",
 			returnError:            false,
 			throwWarning:           true,
-			expectedWarningMessage: fmt.Sprintf(lang.CmdPackageDeployInvalidCLIVersionWarn, "invalidSemanticVersion"),
+			expectedWarningMessage: types.PackageError{
+				Description: fmt.Sprintf(lang.CmdPackageDeployInvalidCLIVersionWarn, "invalidSemanticVersion"),
+				Category:    types.SevWarn,
+			},
 		},
 		{
 			name:                   "invalid semantic version (lastNonBreakingVersion)",
