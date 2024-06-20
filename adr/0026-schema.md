@@ -39,7 +39,7 @@ When Zarf introduces new keys that they are not ready to promise long term suppo
 
 There are several other keys we plan to deprecate with automated migrations to new fields
 - `.metadata.aggregateChecksum` -> `.build.aggregateChecksum`
-- Metadata fields `image`, `documentation`, `url`, `authors`, `vendors` -> will become a map of `annotations`
+- Metadata fields `image`, `source`, `documentation`, `url`, `authors`, `vendors` -> will become a map of `annotations`
 - `noWait` -> `wait` which will default to true. This change will happen on both `.components.manifests` and `components.charts`
 - `yolo` -> `airgap` which will default to true
 - `.components.actions.[default/onAny].maxRetries` -> `.components.actions.[default/onAny].retries`
