@@ -274,11 +274,11 @@ func (ic *ImportChain) Migrate(build types.ZarfBuildData) (packageErrors []types
 		node = node.next
 	}
 	if len(warnings) > 0 {
-		final := types.PackageError{
+		migrationWarning := types.PackageError{
 			Description: fmt.Sprintf("Migrations were performed on the import chain of: %q", ic.head.Name),
 			Category:    types.SevWarn,
 		}
-		packageErrors = append(packageErrors, final)
+		packageErrors = append(packageErrors, migrationWarning)
 	}
 	return packageErrors
 }
