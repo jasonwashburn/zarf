@@ -60,7 +60,7 @@ func (p *Packager) FindImages(ctx context.Context) (imgMap map[string][]string, 
 		return nil, err
 	}
 
-	p.cfg.Pkg, p.warnings, err = c.LoadPackageDefinition(ctx, p.layout)
+	p.cfg.Pkg, p.warnings, err = c.LoadPackageDefinitionWithValidate(ctx, p.layout)
 	if err != nil {
 		return nil, err
 	}

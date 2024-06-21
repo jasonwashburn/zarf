@@ -34,7 +34,7 @@ components:
       url: oci://🦄/dos-games:1.0.0
       name: baseline
 
-  - name: oci-games-url
+  - name: oci-games
     import:
       path: linted-import
 
