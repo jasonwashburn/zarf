@@ -43,6 +43,26 @@ func PrintFindings(findings []types.PackageError, severity types.Severity, baseD
 		return
 	}
 
+	mapOfFindingsByPath := groupFindingsByPath(findings, severity, packageName)
+
+	header := []string{"Type", "Path", "Message"}
+
+	for _, findings := range mapOfFindingsByPath {
+		lintData := [][]string{}
+		for _, finding := range findings {
+			lintData = append(lintData, []string{
+				colorWrapSev(finding.Category),
+				pathColorWrap(finding.YqPath),
+				itemizedDescription(finding.Description, finding.Item),
+			})
+		}
+		message.Notef("Linting package %q at %s", findings[0].PackageNameOverride,
+			packageRelPathToUser(baseDir, findings[0].PackagePathOverride))
+		message.Table(header, lintData)
+	}
+}
+
+func groupFindingsByPath(findings []types.PackageError, severity types.Severity, packageName string) map[string][]types.PackageError {
 	findings = helpers.RemoveMatches(findings, func(finding types.PackageError) bool {
 		return finding.Category > severity
 	})
@@ -59,49 +79,7 @@ func PrintFindings(findings []types.PackageError, severity types.Severity, baseD
 	for _, finding := range findings {
 		mapOfFindingsByPath[finding.PackagePathOverride] = append(mapOfFindingsByPath[finding.PackagePathOverride], finding)
 	}
-
-	header := []string{"Type", "Path", "Message"}
-
-	for packageRelPath, findings := range mapOfFindingsByPath {
-		lintData := [][]string{}
-		for _, finding := range findings {
-			lintData = append(lintData, []string{
-				colorWrapSev(finding.Category),
-				pathColorWrap(finding.YqPath),
-				itemizedDescription(finding.Description, finding.Item),
-			})
-		}
-		message.Notef("Linting package %q at %s", findings[0].PackageNameOverride,
-			packageRelPathToUser(baseDir, findings[0].PackagePathOverride))
-		message.Table(header, lintData)
-		message.Info(getFormattedFindingCount(findings, packageRelPath, findings[0].PackageNameOverride))
-	}
-}
-
-func getFormattedFindingCount(pkgErrs []types.PackageError, relPath string, packageName string) string {
-	warningCount := 0
-	errorCount := 0
-	for _, finding := range pkgErrs {
-		if finding.PackagePathOverride != relPath {
-			continue
-		}
-		if finding.Category == types.SevWarn {
-			warningCount++
-		}
-		if finding.Category == types.SevErr {
-			errorCount++
-		}
-	}
-	wordWarning := "warnings"
-	if warningCount == 1 {
-		wordWarning = "warning"
-	}
-	wordError := "errors"
-	if errorCount == 1 {
-		wordError = "error"
-	}
-	return fmt.Sprintf("%d %s and %d %s in %q",
-		warningCount, wordWarning, errorCount, wordError, packageName)
+	return mapOfFindingsByPath
 }
 
 func pathColorWrap(path string) string {
