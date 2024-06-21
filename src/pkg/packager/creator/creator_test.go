@@ -24,7 +24,7 @@ func (m *mockSchemaLoader) ReadFile(_ string) ([]byte, error) {
 	return m.b, nil
 }
 
-func TestLoadPackageDefinition(t *testing.T) {
+func TestLoadPackageDefinitionWithValidate(t *testing.T) {
 	// TODO once creator is refactored to not expect to be in the same directory as the zarf.yaml file
 	// this test can be re-parallelized
 	tests := []struct {
