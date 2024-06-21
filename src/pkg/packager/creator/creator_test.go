@@ -42,7 +42,7 @@ func TestLoadPackageDefinitionWithValidate(t *testing.T) {
 		{
 			name:        "invalid package definition",
 			testDir:     "invalid",
-			expectedErr: "errors during lint",
+			expectedErr: "found errors in package",
 			creator:     NewPackageCreator(types.ZarfCreateOptions{}, ""),
 		},
 		{
@@ -54,7 +54,7 @@ func TestLoadPackageDefinitionWithValidate(t *testing.T) {
 		{
 			name:        "invalid package definition",
 			testDir:     "invalid",
-			expectedErr: "errors during lint",
+			expectedErr: "found errors in package",
 			creator:     NewSkeletonCreator(types.ZarfCreateOptions{}, types.ZarfPublishOptions{}),
 		},
 	}

@@ -30,7 +30,7 @@ func validate(ctx context.Context, createOpts types.ZarfCreateOptions, pkg types
 
 	lint.PrintFindings(findings, types.SevErr, createOpts.BaseDir, pkg.Metadata.Name)
 	if lint.HasErrors(findings) {
-		return fmt.Errorf("errors during lint")
+		return fmt.Errorf("found errors in package")
 	}
 
 	return nil
