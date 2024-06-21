@@ -70,7 +70,7 @@ func TestGroupFindingsByPath(t *testing.T) {
 	}
 }
 
-func TestValidator(t *testing.T) {
+func TestHasSeverity(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		severity types.Severity
