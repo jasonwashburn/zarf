@@ -37,6 +37,7 @@ zarf package create [ DIRECTORY ] [flags]
       --signing-key string                 Path to private key file for signing packages
       --signing-key-pass string            Password to the private key file used for signing packages
       --skip-sbom                          Skip generating SBOM for this package
+      --validate-schema                    Validate the Zarf package against the schema (default true)
 ```
 
 ### Options inherited from parent commands
