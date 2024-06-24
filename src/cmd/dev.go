@@ -18,7 +18,6 @@ import (
 	"github.com/defenseunicorns/zarf/src/config/lang"
 	"github.com/defenseunicorns/zarf/src/pkg/message"
 	"github.com/defenseunicorns/zarf/src/pkg/packager"
-	"github.com/defenseunicorns/zarf/src/pkg/packager/lint"
 	"github.com/defenseunicorns/zarf/src/pkg/transform"
 	"github.com/defenseunicorns/zarf/src/pkg/utils"
 	"github.com/defenseunicorns/zarf/src/types"
@@ -249,19 +248,16 @@ var devLintCmd = &cobra.Command{
 	Aliases: []string{"l"},
 	Short:   lang.CmdDevLintShort,
 	Long:    lang.CmdDevLintLong,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		pkgConfig.CreateOpts.BaseDir = common.SetBaseDirectory(args)
 		v := common.GetViper()
 		pkgConfig.CreateOpts.SetVariables = helpers.TransformAndMergeMap(
 			v.GetStringMapString(common.VPkgCreateSet), pkgConfig.CreateOpts.SetVariables, strings.ToUpper)
-		validator, err := lint.Validate(cmd.Context(), pkgConfig.CreateOpts)
-		if err != nil {
-			message.Fatal(err, err.Error())
-		}
-		validator.DisplayFormattedMessage()
-		if !validator.IsSuccess() {
-			os.Exit(1)
-		}
+
+		pkgClient := packager.NewOrDie(&pkgConfig)
+		defer pkgClient.ClearTempPaths()
+
+		return pkgClient.Lint(cmd.Context())
 	},
 }
 
