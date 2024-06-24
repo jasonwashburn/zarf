@@ -120,7 +120,6 @@ type ZarfCreateOptions struct {
 	Flavor                  string            `json:"flavor" jsonschema:"description=An optional variant that controls which components will be included in a package"`
 	IsSkeleton              bool              `json:"isSkeleton" jsonschema:"description=Whether to create a skeleton package"`
 	NoYOLO                  bool              `json:"noYOLO" jsonschema:"description=Whether to create a YOLO package"`
-	ValidateSchema          bool              `json:"validateSchema" jsonschema:"description=Whether or not to validate schema"`
 }
 
 // ZarfSplitPackageData contains info about a split package.

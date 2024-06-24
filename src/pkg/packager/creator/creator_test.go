@@ -43,13 +43,13 @@ func TestLoadPackageDefinitionWithValidate(t *testing.T) {
 			name:        "invalid package definition",
 			testDir:     "invalid",
 			expectedErr: "found errors in package",
-			creator:     NewPackageCreator(types.ZarfCreateOptions{ValidateSchema: true}, ""),
+			creator:     NewPackageCreator(types.ZarfCreateOptions{}, ""),
 		},
 		{
 			name:        "invalid package definition but no validate schema",
 			testDir:     "invalid",
 			expectedErr: "",
-			creator:     NewPackageCreator(types.ZarfCreateOptions{ValidateSchema: false}, ""),
+			creator:     NewPackageCreator(types.ZarfCreateOptions{}, ""),
 		},
 		{
 			name:        "valid package definition",
@@ -61,7 +61,7 @@ func TestLoadPackageDefinitionWithValidate(t *testing.T) {
 			name:        "invalid package definition",
 			testDir:     "invalid",
 			expectedErr: "found errors in package",
-			creator:     NewSkeletonCreator(types.ZarfCreateOptions{ValidateSchema: true}, types.ZarfPublishOptions{}),
+			creator:     NewSkeletonCreator(types.ZarfCreateOptions{}, types.ZarfPublishOptions{}),
 		},
 	}
 	b, err := os.ReadFile("../../../../zarf.schema.json")

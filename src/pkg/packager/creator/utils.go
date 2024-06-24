@@ -23,9 +23,6 @@ func validate(ctx context.Context, createOpts types.ZarfCreateOptions, pkg types
 		return fmt.Errorf("package validation failed: %w", err)
 	}
 
-	if !createOpts.ValidateSchema {
-		return nil
-	}
 	findings, err := lint.Validate(ctx, createOpts)
 	if err != nil {
 		return fmt.Errorf("unable to lint package: %w", err)
