@@ -22,7 +22,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// FileLoader is an interface for reading files, it decouples the lint package from the go embed package
+// FileLoader is an interface for reading files, it decouples the lint package from the go embed package which enables testing
 type FileLoader interface {
 	ReadFile(path string) ([]byte, error)
 }
