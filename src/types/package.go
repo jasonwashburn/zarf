@@ -80,10 +80,10 @@ type PackageError struct {
 	Description string
 	// Item is the value of a key that is causing an error, for example a bad image name
 	Item string
-	// PackageNameOverride is used in the case of composition to let the user know which package the error originated from
+	// PackageNameOverride shows the name of the package that the error originated from
 	// If it is not set the base package will be used when displaying the error
 	PackageNameOverride string
-	// PackageNameOverride is used in the case of composition to let the user know which package the error originated from
+	// PackagePathOverride shows the path to the package that the error originated from
 	// If it is not set the base package will be used when displaying the error
 	PackagePathOverride string
 	Category            Severity
