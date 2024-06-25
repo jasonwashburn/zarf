@@ -152,14 +152,14 @@ func TestValidateSchema(t *testing.T) {
 			},
 		},
 	}
-	for _, tc := range tests {
-		tt := tc
+	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			schemaErrs, err := runSchema(getZarfSchema(t), tt.pkg)
+			findings, err := runSchema(getZarfSchema(t), tt.pkg)
 			require.NoError(t, err)
 			var schemaStrings []string
-			for _, schemaErr := range schemaErrs {
+			for _, schemaErr := range findings {
 				schemaStrings = append(schemaStrings, schemaErr.String())
 			}
 			require.ElementsMatch(t, tt.expectedSchemaStrings, schemaStrings)
@@ -195,16 +195,16 @@ func TestValidateComponent(t *testing.T) {
 			unpinnedRepo,
 			"https://dev.azure.com/defenseunicorns/zarf-public-test/_git/zarf-public-test@v0.0.1",
 		}}
-		pkgErrs := checkForUnpinnedRepos(component, 0)
+		findings := checkForUnpinnedRepos(component, 0)
 		expected := []types.PackageFinding{
 			{
 				Item:        unpinnedRepo,
 				Description: "Unpinned repository",
-				Category:    types.SevWarn,
+				Severity:    types.SevWarn,
 				YqPath:      ".components.[0].repos.[0]",
 			},
 		}
-		require.Equal(t, expected, pkgErrs)
+		require.Equal(t, expected, findings)
 	})
 
 	t.Run("Unpinnned image warning", func(t *testing.T) {
@@ -216,22 +216,22 @@ func TestValidateComponent(t *testing.T) {
 			"busybox:latest@sha256:3fbc632167424a6d997e74f52b878d7cc478225cffac6bc977eedfe51c7f4e79",
 			badImage,
 		}}
-		pkgErrs := checkForUnpinnedImages(component, 0)
+		findings := checkForUnpinnedImages(component, 0)
 		expected := []types.PackageFinding{
 			{
 				Item:        unpinnedImage,
 				Description: "Image not pinned with digest",
-				Category:    types.SevWarn,
+				Severity:    types.SevWarn,
 				YqPath:      ".components.[0].images.[0]",
 			},
 			{
 				Item:        badImage,
 				Description: "Failed to parse image reference",
-				Category:    types.SevWarn,
+				Severity:    types.SevWarn,
 				YqPath:      ".components.[0].images.[2]",
 			},
 		}
-		require.Equal(t, expected, pkgErrs)
+		require.Equal(t, expected, findings)
 	})
 
 	t.Run("Unpinnned file warning", func(t *testing.T) {
@@ -251,17 +251,17 @@ func TestValidateComponent(t *testing.T) {
 			},
 		}
 		component := types.ZarfComponent{Files: zarfFiles}
-		pkgErrs := checkForUnpinnedFiles(component, 0)
+		findings := checkForUnpinnedFiles(component, 0)
 		expectedErr := []types.PackageFinding{
 			{
 				Item:        fileURL,
 				Description: "No shasum for remote file",
-				Category:    types.SevWarn,
+				Severity:    types.SevWarn,
 				YqPath:      ".components.[0].files.[0]",
 			},
 		}
-		require.Equal(t, expectedErr, pkgErrs)
-		require.Len(t, pkgErrs, 1)
+		require.Equal(t, expectedErr, findings)
+		require.Len(t, findings, 1)
 	})
 
 	t.Run("Wrap standalone numbers in bracket", func(t *testing.T) {

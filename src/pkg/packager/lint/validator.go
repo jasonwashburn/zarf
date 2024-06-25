@@ -51,7 +51,7 @@ func PrintFindings(findings []types.PackageFinding, severity types.Severity, bas
 		lintData := [][]string{}
 		for _, finding := range findings {
 			lintData = append(lintData, []string{
-				colorWrapSev(finding.Category),
+				colorWrapSev(finding.Severity),
 				pathColorWrap(finding.YqPath),
 				itemizedDescription(finding.Description, finding.Item),
 			})
@@ -64,7 +64,7 @@ func PrintFindings(findings []types.PackageFinding, severity types.Severity, bas
 
 func groupFindingsByPath(findings []types.PackageFinding, severity types.Severity, packageName string) map[string][]types.PackageFinding {
 	findings = helpers.RemoveMatches(findings, func(finding types.PackageFinding) bool {
-		return finding.Category > severity
+		return finding.Severity > severity
 	})
 	for i := range findings {
 		if findings[i].PackageNameOverride == "" {
@@ -91,7 +91,7 @@ func pathColorWrap(path string) string {
 
 func hasSeverity(findings []types.PackageFinding, category types.Severity) bool {
 	for _, finding := range findings {
-		if finding.Category <= category {
+		if finding.Severity <= category {
 			return true
 		}
 	}

@@ -86,7 +86,7 @@ type PackageFinding struct {
 	// PackagePathOverride shows the path to the package that the error originated from
 	// If it is not set the base package will be used when displaying the error
 	PackagePathOverride string
-	Category            Severity
+	Severity            Severity
 }
 
 // Severity is the type of package error

@@ -33,7 +33,7 @@ var ZarfSchema FileLoader
 // Validate validates a zarf file
 func Validate(ctx context.Context, createOpts types.ZarfCreateOptions) ([]types.PackageFinding, error) {
 	var pkg types.ZarfPackage
-	var pkgErrs []types.PackageFinding
+	var findings []types.PackageFinding
 	if err := utils.ReadYaml(layout.ZarfYAML, &pkg); err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func Validate(ctx context.Context, createOpts types.ZarfCreateOptions) ([]types.
 	if err != nil {
 		return nil, err
 	}
-	pkgErrs = append(pkgErrs, compFindings...)
+	findings = append(findings, compFindings...)
 
 	jsonSchema, err := ZarfSchema.ReadFile("zarf.schema.json")
 	if err != nil {
@@ -57,13 +57,13 @@ func Validate(ctx context.Context, createOpts types.ZarfCreateOptions) ([]types.
 	if err != nil {
 		return nil, err
 	}
-	pkgErrs = append(pkgErrs, schemaFindings...)
+	findings = append(findings, schemaFindings...)
 
-	return pkgErrs, nil
+	return findings, nil
 }
 
 func lintComponents(ctx context.Context, pkg types.ZarfPackage, createOpts types.ZarfCreateOptions) ([]types.PackageFinding, error) {
-	var pkgErrs []types.PackageFinding
+	var findings []types.PackageFinding
 
 	for i, component := range pkg.Components {
 		arch := config.GetArch(pkg.Metadata.Architecture)
@@ -80,26 +80,26 @@ func lintComponents(ctx context.Context, pkg types.ZarfPackage, createOpts types
 		node := chain.Head()
 		for node != nil {
 			component := node.ZarfComponent
-			nodeErrs := fillComponentTemplate(&component, &createOpts)
-			nodeErrs = append(nodeErrs, checkComponent(component, node.Index())...)
-			for i := range nodeErrs {
-				nodeErrs[i].PackagePathOverride = node.ImportLocation()
-				nodeErrs[i].PackageNameOverride = node.OriginalPackageName()
+			compFindings := fillComponentTemplate(&component, &createOpts)
+			compFindings = append(compFindings, checkComponent(component, node.Index())...)
+			for i := range compFindings {
+				compFindings[i].PackagePathOverride = node.ImportLocation()
+				compFindings[i].PackageNameOverride = node.OriginalPackageName()
 			}
-			pkgErrs = append(pkgErrs, nodeErrs...)
+			findings = append(findings, compFindings...)
 			node = node.Next()
 		}
 	}
-	return pkgErrs, nil
+	return findings, nil
 }
 
 func fillComponentTemplate(c *types.ZarfComponent, createOpts *types.ZarfCreateOptions) []types.PackageFinding {
 	err := creator.ReloadComponentTemplate(c)
-	var nodeErrs []types.PackageFinding
+	var findings []types.PackageFinding
 	if err != nil {
-		nodeErrs = append(nodeErrs, types.PackageFinding{
+		findings = append(findings, types.PackageFinding{
 			Description: err.Error(),
-			Category:    types.SevWarn,
+			Severity:    types.SevWarn,
 		})
 	}
 	templateMap := map[string]string{}
@@ -107,24 +107,24 @@ func fillComponentTemplate(c *types.ZarfComponent, createOpts *types.ZarfCreateO
 	setVarsAndWarn := func(templatePrefix string, deprecated bool) {
 		yamlTemplates, err := utils.FindYamlTemplates(c, templatePrefix, "###")
 		if err != nil {
-			nodeErrs = append(nodeErrs, types.PackageFinding{
+			findings = append(findings, types.PackageFinding{
 				Description: err.Error(),
-				Category:    types.SevWarn,
+				Severity:    types.SevWarn,
 			})
 		}
 
 		for key := range yamlTemplates {
 			if deprecated {
-				nodeErrs = append(nodeErrs, types.PackageFinding{
+				findings = append(findings, types.PackageFinding{
 					Description: fmt.Sprintf(lang.PkgValidateTemplateDeprecation, key, key, key),
-					Category:    types.SevWarn,
+					Severity:    types.SevWarn,
 				})
 			}
 			_, present := createOpts.SetVariables[key]
 			if !present {
-				nodeErrs = append(nodeErrs, types.PackageFinding{
+				findings = append(findings, types.PackageFinding{
 					Description: lang.UnsetVarLintWarning,
-					Category:    types.SevWarn,
+					Severity:    types.SevWarn,
 				})
 			}
 		}
@@ -140,7 +140,7 @@ func fillComponentTemplate(c *types.ZarfComponent, createOpts *types.ZarfCreateO
 
 	//nolint: errcheck // This error should bubble up
 	utils.ReloadYamlTemplate(c, templateMap)
-	return nodeErrs
+	return findings
 }
 
 func isPinnedImage(image string) (bool, error) {
@@ -161,69 +161,69 @@ func isPinnedRepo(repo string) bool {
 
 // checkComponent runs lint rules against a component
 func checkComponent(c types.ZarfComponent, i int) []types.PackageFinding {
-	var pkgErrs []types.PackageFinding
-	pkgErrs = append(pkgErrs, checkForUnpinnedRepos(c, i)...)
-	pkgErrs = append(pkgErrs, checkForUnpinnedImages(c, i)...)
-	pkgErrs = append(pkgErrs, checkForUnpinnedFiles(c, i)...)
-	return pkgErrs
+	var findings []types.PackageFinding
+	findings = append(findings, checkForUnpinnedRepos(c, i)...)
+	findings = append(findings, checkForUnpinnedImages(c, i)...)
+	findings = append(findings, checkForUnpinnedFiles(c, i)...)
+	return findings
 }
 
 func checkForUnpinnedRepos(c types.ZarfComponent, i int) []types.PackageFinding {
-	var pkgErrs []types.PackageFinding
+	var findings []types.PackageFinding
 	for j, repo := range c.Repos {
 		repoYqPath := fmt.Sprintf(".components.[%d].repos.[%d]", i, j)
 		if !isPinnedRepo(repo) {
-			pkgErrs = append(pkgErrs, types.PackageFinding{
+			findings = append(findings, types.PackageFinding{
 				YqPath:      repoYqPath,
 				Description: "Unpinned repository",
 				Item:        repo,
-				Category:    types.SevWarn,
+				Severity:    types.SevWarn,
 			})
 		}
 	}
-	return pkgErrs
+	return findings
 }
 
 func checkForUnpinnedImages(c types.ZarfComponent, i int) []types.PackageFinding {
-	var pkgErrs []types.PackageFinding
+	var findings []types.PackageFinding
 	for j, image := range c.Images {
 		imageYqPath := fmt.Sprintf(".components.[%d].images.[%d]", i, j)
 		pinnedImage, err := isPinnedImage(image)
 		if err != nil {
-			pkgErrs = append(pkgErrs, types.PackageFinding{
+			findings = append(findings, types.PackageFinding{
 				YqPath:      imageYqPath,
 				Description: "Failed to parse image reference",
 				Item:        image,
-				Category:    types.SevWarn,
+				Severity:    types.SevWarn,
 			})
 			continue
 		}
 		if !pinnedImage {
-			pkgErrs = append(pkgErrs, types.PackageFinding{
+			findings = append(findings, types.PackageFinding{
 				YqPath:      imageYqPath,
 				Description: "Image not pinned with digest",
 				Item:        image,
-				Category:    types.SevWarn,
+				Severity:    types.SevWarn,
 			})
 		}
 	}
-	return pkgErrs
+	return findings
 }
 
 func checkForUnpinnedFiles(c types.ZarfComponent, i int) []types.PackageFinding {
-	var pkgErrs []types.PackageFinding
+	var findings []types.PackageFinding
 	for j, file := range c.Files {
 		fileYqPath := fmt.Sprintf(".components.[%d].files.[%d]", i, j)
 		if file.Shasum == "" && helpers.IsURL(file.Source) {
-			pkgErrs = append(pkgErrs, types.PackageFinding{
+			findings = append(findings, types.PackageFinding{
 				YqPath:      fileYqPath,
 				Description: "No shasum for remote file",
 				Item:        file.Source,
-				Category:    types.SevWarn,
+				Severity:    types.SevWarn,
 			})
 		}
 	}
-	return pkgErrs
+	return findings
 }
 
 func makeFieldPathYqCompat(field string) string {
@@ -240,7 +240,7 @@ func makeFieldPathYqCompat(field string) string {
 }
 
 func validateSchema(jsonSchema []byte, untypedZarfPackage interface{}) ([]types.PackageFinding, error) {
-	var pkgErrs []types.PackageFinding
+	var findings []types.PackageFinding
 
 	schemaErrors, err := runSchema(jsonSchema, untypedZarfPackage)
 	if err != nil {
@@ -249,15 +249,15 @@ func validateSchema(jsonSchema []byte, untypedZarfPackage interface{}) ([]types.
 
 	if len(schemaErrors) != 0 {
 		for _, schemaErr := range schemaErrors {
-			pkgErrs = append(pkgErrs, types.PackageFinding{
+			findings = append(findings, types.PackageFinding{
 				YqPath:      makeFieldPathYqCompat(schemaErr.Field()),
 				Description: schemaErr.Description(),
-				Category:    types.SevErr,
+				Severity:    types.SevErr,
 			})
 		}
 	}
 
-	return pkgErrs, err
+	return findings, err
 }
 
 func runSchema(jsonSchema []byte, pkg interface{}) ([]gojsonschema.ResultError, error) {

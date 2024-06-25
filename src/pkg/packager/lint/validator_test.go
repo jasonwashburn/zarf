@@ -23,41 +23,41 @@ func TestGroupFindingsByPath(t *testing.T) {
 		{
 			name: "same package multiple findings",
 			findings: []types.PackageFinding{
-				{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
-				{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
+				{Severity: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
+				{Severity: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
 			},
 			severity:    types.SevWarn,
 			packageName: "testPackage",
 			want: map[string][]types.PackageFinding{
 				"path": {
-					{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
-					{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
+					{Severity: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
+					{Severity: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
 				},
 			},
 		},
 		{
 			name: "different packages single finding",
 			findings: []types.PackageFinding{
-				{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
-				{Category: types.SevErr, PackageNameOverride: "", PackagePathOverride: ""},
+				{Severity: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
+				{Severity: types.SevErr, PackageNameOverride: "", PackagePathOverride: ""},
 			},
 			severity:    types.SevWarn,
 			packageName: "testPackage",
 			want: map[string][]types.PackageFinding{
-				"path": {{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"}},
-				".":    {{Category: types.SevErr, PackageNameOverride: "testPackage", PackagePathOverride: "."}},
+				"path": {{Severity: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"}},
+				".":    {{Severity: types.SevErr, PackageNameOverride: "testPackage", PackagePathOverride: "."}},
 			},
 		},
 		{
 			name: "Multiple findings, mixed severity",
 			findings: []types.PackageFinding{
-				{Category: types.SevWarn, PackageNameOverride: "", PackagePathOverride: ""},
-				{Category: types.SevErr, PackageNameOverride: "", PackagePathOverride: ""},
+				{Severity: types.SevWarn, PackageNameOverride: "", PackagePathOverride: ""},
+				{Severity: types.SevErr, PackageNameOverride: "", PackagePathOverride: ""},
 			},
 			severity:    types.SevErr,
 			packageName: "testPackage",
 			want: map[string][]types.PackageFinding{
-				".": {{Category: types.SevErr, PackageNameOverride: "testPackage", PackagePathOverride: "."}},
+				".": {{Severity: types.SevErr, PackageNameOverride: "testPackage", PackagePathOverride: "."}},
 			},
 		},
 	}
@@ -73,46 +73,50 @@ func TestGroupFindingsByPath(t *testing.T) {
 func TestHasSeverity(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
+		name     string
 		severity types.Severity
 		expected bool
 		findings []types.PackageFinding
 	}{
 		{
+			name: "error severity present",
 			findings: []types.PackageFinding{
 				{
-					Category: types.SevErr,
+					Severity: types.SevErr,
 				},
 			},
 			severity: types.SevErr,
 			expected: true,
 		},
 		{
+			name: "error severity not present",
 			findings: []types.PackageFinding{
 				{
-					Category: types.SevWarn,
+					Severity: types.SevWarn,
 				},
 			},
-			severity: types.SevWarn,
-			expected: true,
+			severity: types.SevErr,
+			expected: false,
 		},
 		{
+			name: "err and warning severity present",
 			findings: []types.PackageFinding{
 				{
-					Category: types.SevWarn,
+					Severity: types.SevWarn,
 				},
 				{
-					Category: types.SevErr,
+					Severity: types.SevErr,
 				},
 			},
 			severity: types.SevErr,
 			expected: true,
 		},
 	}
-	for _, tc := range tests {
-		tc := tc
-		t.Run("test has severity", func(t *testing.T) {
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			require.Equal(t, tc.expected, hasSeverity(tc.findings, tc.severity))
+			require.Equal(t, tt.expected, hasSeverity(tt.findings, tt.severity))
 		})
 	}
 }
