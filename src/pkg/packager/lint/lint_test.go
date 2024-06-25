@@ -45,7 +45,7 @@ func readAndUnmarshalYaml[T interface{}](t *testing.T, yamlString string) T {
 	return unmarshalledYaml
 }
 
-func TestValidateSchema(t *testing.T) {
+func TestZarfSchema(t *testing.T) {
 	t.Parallel()
 	getZarfSchema := func(t *testing.T) []byte {
 		t.Helper()
@@ -182,6 +182,25 @@ func TestValidateSchema(t *testing.T) {
 		}
 
 		require.ElementsMatch(t, expectedSchemaStrings, schemaStrings)
+	})
+
+	t.Run("test schema findings is created as expected", func(t *testing.T) {
+		t.Parallel()
+		findings, err := validateSchema(getZarfSchema(t), types.ZarfPackage{
+			Kind: types.ZarfInitConfig,
+			Metadata: types.ZarfMetadata{
+				Name: "invalid",
+			},
+		})
+		require.NoError(t, err)
+		expected := []types.PackageFinding{
+			{
+				Description: "Invalid type. Expected: array, given: null",
+				Severity:    types.SevErr,
+				YqPath:      ".components",
+			},
+		}
+		require.ElementsMatch(t, expected, findings)
 	})
 }
 
