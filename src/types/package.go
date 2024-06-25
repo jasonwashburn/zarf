@@ -73,8 +73,8 @@ type ZarfBuildData struct {
 	Flavor                     string            `json:"flavor,omitempty" jsonschema:"description=The flavor of Zarf used to build this package"`
 }
 
-// PackageError is a struct that contains a finding about something wrong with a package
-type PackageError struct {
+// PackageFinding is a struct that contains a finding about something wrong with a package
+type PackageFinding struct {
 	// YqPath is the path to the key where the error originated from, this is sometimes empty in the case of a general error
 	YqPath      string
 	Description string

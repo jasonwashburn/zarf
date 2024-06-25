@@ -15,20 +15,20 @@ func TestGroupFindingsByPath(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name        string
-		findings    []types.PackageError
+		findings    []types.PackageFinding
 		severity    types.Severity
 		packageName string
-		want        map[string][]types.PackageError
+		want        map[string][]types.PackageFinding
 	}{
 		{
 			name: "same package multiple findings",
-			findings: []types.PackageError{
+			findings: []types.PackageFinding{
 				{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
 				{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
 			},
 			severity:    types.SevWarn,
 			packageName: "testPackage",
-			want: map[string][]types.PackageError{
+			want: map[string][]types.PackageFinding{
 				"path": {
 					{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
 					{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
@@ -37,26 +37,26 @@ func TestGroupFindingsByPath(t *testing.T) {
 		},
 		{
 			name: "different packages single finding",
-			findings: []types.PackageError{
+			findings: []types.PackageFinding{
 				{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"},
 				{Category: types.SevErr, PackageNameOverride: "", PackagePathOverride: ""},
 			},
 			severity:    types.SevWarn,
 			packageName: "testPackage",
-			want: map[string][]types.PackageError{
+			want: map[string][]types.PackageFinding{
 				"path": {{Category: types.SevWarn, PackageNameOverride: "import", PackagePathOverride: "path"}},
 				".":    {{Category: types.SevErr, PackageNameOverride: "testPackage", PackagePathOverride: "."}},
 			},
 		},
 		{
 			name: "Multiple findings, mixed severity",
-			findings: []types.PackageError{
+			findings: []types.PackageFinding{
 				{Category: types.SevWarn, PackageNameOverride: "", PackagePathOverride: ""},
 				{Category: types.SevErr, PackageNameOverride: "", PackagePathOverride: ""},
 			},
 			severity:    types.SevErr,
 			packageName: "testPackage",
-			want: map[string][]types.PackageError{
+			want: map[string][]types.PackageFinding{
 				".": {{Category: types.SevErr, PackageNameOverride: "testPackage", PackagePathOverride: "."}},
 			},
 		},
@@ -75,10 +75,10 @@ func TestHasSeverity(t *testing.T) {
 	tests := []struct {
 		severity types.Severity
 		expected bool
-		findings []types.PackageError
+		findings []types.PackageFinding
 	}{
 		{
-			findings: []types.PackageError{
+			findings: []types.PackageFinding{
 				{
 					Category: types.SevErr,
 				},
@@ -87,7 +87,7 @@ func TestHasSeverity(t *testing.T) {
 			expected: true,
 		},
 		{
-			findings: []types.PackageError{
+			findings: []types.PackageFinding{
 				{
 					Category: types.SevWarn,
 				},
@@ -96,7 +96,7 @@ func TestHasSeverity(t *testing.T) {
 			expected: true,
 		},
 		{
-			findings: []types.PackageError{
+			findings: []types.PackageFinding{
 				{
 					Category: types.SevWarn,
 				},

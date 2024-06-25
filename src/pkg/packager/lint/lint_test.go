@@ -196,7 +196,7 @@ func TestValidateComponent(t *testing.T) {
 			"https://dev.azure.com/defenseunicorns/zarf-public-test/_git/zarf-public-test@v0.0.1",
 		}}
 		pkgErrs := checkForUnpinnedRepos(component, 0)
-		expected := []types.PackageError{
+		expected := []types.PackageFinding{
 			{
 				Item:        unpinnedRepo,
 				Description: "Unpinned repository",
@@ -217,7 +217,7 @@ func TestValidateComponent(t *testing.T) {
 			badImage,
 		}}
 		pkgErrs := checkForUnpinnedImages(component, 0)
-		expected := []types.PackageError{
+		expected := []types.PackageFinding{
 			{
 				Item:        unpinnedImage,
 				Description: "Image not pinned with digest",
@@ -252,7 +252,7 @@ func TestValidateComponent(t *testing.T) {
 		}
 		component := types.ZarfComponent{Files: zarfFiles}
 		pkgErrs := checkForUnpinnedFiles(component, 0)
-		expectedErr := []types.PackageError{
+		expectedErr := []types.PackageFinding{
 			{
 				Item:        fileURL,
 				Description: "No shasum for remote file",

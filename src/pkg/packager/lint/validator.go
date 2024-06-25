@@ -38,7 +38,7 @@ func packageRelPathToUser(baseDir string, relPath string) string {
 }
 
 // PrintFindings prints a table of the findings with the given severity or higher
-func PrintFindings(findings []types.PackageError, severity types.Severity, baseDir string, packageName string) {
+func PrintFindings(findings []types.PackageFinding, severity types.Severity, baseDir string, packageName string) {
 	if !hasSeverity(findings, severity) {
 		return
 	}
@@ -62,8 +62,8 @@ func PrintFindings(findings []types.PackageError, severity types.Severity, baseD
 	}
 }
 
-func groupFindingsByPath(findings []types.PackageError, severity types.Severity, packageName string) map[string][]types.PackageError {
-	findings = helpers.RemoveMatches(findings, func(finding types.PackageError) bool {
+func groupFindingsByPath(findings []types.PackageFinding, severity types.Severity, packageName string) map[string][]types.PackageFinding {
+	findings = helpers.RemoveMatches(findings, func(finding types.PackageFinding) bool {
 		return finding.Category > severity
 	})
 	for i := range findings {
@@ -75,7 +75,7 @@ func groupFindingsByPath(findings []types.PackageError, severity types.Severity,
 		}
 	}
 
-	mapOfFindingsByPath := make(map[string][]types.PackageError)
+	mapOfFindingsByPath := make(map[string][]types.PackageFinding)
 	for _, finding := range findings {
 		mapOfFindingsByPath[finding.PackagePathOverride] = append(mapOfFindingsByPath[finding.PackagePathOverride], finding)
 	}
@@ -89,7 +89,7 @@ func pathColorWrap(path string) string {
 	return message.ColorWrap(path, color.FgCyan)
 }
 
-func hasSeverity(findings []types.PackageError, category types.Severity) bool {
+func hasSeverity(findings []types.PackageFinding, category types.Severity) bool {
 	for _, finding := range findings {
 		if finding.Category <= category {
 			return true
@@ -99,6 +99,6 @@ func hasSeverity(findings []types.PackageError, category types.Severity) bool {
 }
 
 // HasErrors returns true if the validator finds errors in the Zarf package
-func HasErrors(findings []types.PackageError) bool {
+func HasErrors(findings []types.PackageFinding) bool {
 	return hasSeverity(findings, types.SevErr)
 }
