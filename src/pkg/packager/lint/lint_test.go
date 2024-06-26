@@ -150,10 +150,11 @@ func TestZarfSchema(t *testing.T) {
 
 	t.Run("validate schema fail with errors not possible from object", func(t *testing.T) {
 		t.Parallel()
-		// When we want to test the absence of a field we can't do it through a struct
-		// since non pointer fields will be auto initialized
+		// When we want to test the absence of a field, an incorrect type, or an extra field
+		// we can't do it through a struct since non pointer fields will have a zero value of their type
 		const badZarfPackage = `
 kind: ZarfInitConfig
+extraField: whatever
 metadata:
   name: invalid
   description: Testing bad yaml
@@ -175,6 +176,7 @@ components:
 			schemaStrings = append(schemaStrings, schemaErr.String())
 		}
 		expectedSchemaStrings := []string{
+			"(root): Additional property extraField is not allowed",
 			"components.0.import.path: Invalid type. Expected: string, given: integer",
 			"components.0.charts.0: name is required",
 			"components.0.manifests.0: name is required",
