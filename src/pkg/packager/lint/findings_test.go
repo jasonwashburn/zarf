@@ -65,7 +65,7 @@ func TestGroupFindingsByPath(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			require.Equal(t, tt.want, groupFindingsByPath(tt.findings, tt.severity, tt.packageName))
+			require.Equal(t, tt.want, GroupFindingsByPath(tt.findings, tt.severity, tt.packageName))
 		})
 	}
 }
@@ -116,7 +116,7 @@ func TestHasSeverity(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			require.Equal(t, tt.expected, hasSeverity(tt.findings, tt.severity))
+			require.Equal(t, tt.expected, HasSeverity(tt.findings, tt.severity))
 		})
 	}
 }
