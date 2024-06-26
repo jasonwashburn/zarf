@@ -7,6 +7,7 @@ package lint
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"regexp"
 	"strings"
 
@@ -22,13 +23,8 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// FileLoader is an interface for reading files, it decouples the lint package from the go embed package which enables testing
-type FileLoader interface {
-	ReadFile(path string) ([]byte, error)
-}
-
 // ZarfSchema is exported so main.go can embed the schema file
-var ZarfSchema FileLoader
+var ZarfSchema fs.ReadFileFS
 
 // Validate validates a zarf file
 func Validate(ctx context.Context, createOpts types.ZarfCreateOptions) ([]types.PackageFinding, error) {
