@@ -17,24 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// When we want to test the absence of a field we can't do it through a struct
-// since non pointer fields will be auto initialized
-const badZarfPackage = `
-kind: ZarfInitConfig
-metadata:
-  name: invalid
-  description: Testing bad yaml
-
-components:
-- name: import-test
-  import:
-    path: 123123
-  charts:
-  - noWait: true
-  manifests:
-  - namespace: no-name-for-manifest
-`
-
 func readAndUnmarshalYaml[T interface{}](t *testing.T, yamlString string) T {
 	t.Helper()
 	var unmarshalledYaml T
@@ -168,6 +150,23 @@ func TestZarfSchema(t *testing.T) {
 
 	t.Run("validate schema fail with errors not possible from object", func(t *testing.T) {
 		t.Parallel()
+		// When we want to test the absence of a field we can't do it through a struct
+		// since non pointer fields will be auto initialized
+		const badZarfPackage = `
+kind: ZarfInitConfig
+metadata:
+  name: invalid
+  description: Testing bad yaml
+
+components:
+- name: import-test
+  import:
+    path: 123123
+  charts:
+  - noWait: true
+  manifests:
+  - namespace: no-name-for-manifest
+`
 		unmarshalledYaml := readAndUnmarshalYaml[interface{}](t, badZarfPackage)
 		schemaErrs, err := runSchema(getZarfSchema(t), unmarshalledYaml)
 		require.NoError(t, err)
