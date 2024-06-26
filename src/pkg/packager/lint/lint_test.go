@@ -17,22 +17,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func readAndUnmarshalYaml[T interface{}](t *testing.T, yamlString string) T {
-	t.Helper()
-	var unmarshalledYaml T
-	err := goyaml.Unmarshal([]byte(yamlString), &unmarshalledYaml)
-	require.NoError(t, err)
-	return unmarshalledYaml
-}
-
 func TestZarfSchema(t *testing.T) {
 	t.Parallel()
-	getZarfSchema := func(t *testing.T) []byte {
-		t.Helper()
-		file, err := os.ReadFile("../../../../zarf.schema.json")
-		require.NoError(t, err)
-		return file
-	}
+	zarfSchema, err := os.ReadFile("../../../../zarf.schema.json")
+	require.NoError(t, err)
 
 	tests := []struct {
 		name                  string
@@ -134,7 +122,7 @@ func TestZarfSchema(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			findings, err := runSchema(getZarfSchema(t), tt.pkg)
+			findings, err := runSchema(zarfSchema, tt.pkg)
 			require.NoError(t, err)
 			var schemaStrings []string
 			for _, schemaErr := range findings {
@@ -164,8 +152,10 @@ components:
   manifests:
   - namespace: no-name-for-manifest
 `
-		unmarshalledYaml := readAndUnmarshalYaml[interface{}](t, badZarfPackage)
-		schemaErrs, err := runSchema(getZarfSchema(t), unmarshalledYaml)
+		var unmarshalledYaml interface{}
+		err := goyaml.Unmarshal([]byte(badZarfPackage), &unmarshalledYaml)
+		require.NoError(t, err)
+		schemaErrs, err := runSchema(zarfSchema, unmarshalledYaml)
 		require.NoError(t, err)
 		var schemaStrings []string
 		for _, schemaErr := range schemaErrs {
@@ -183,7 +173,7 @@ components:
 
 	t.Run("test schema findings is created as expected", func(t *testing.T) {
 		t.Parallel()
-		findings, err := validateSchema(getZarfSchema(t), types.ZarfPackage{
+		findings, err := validateSchema(zarfSchema, types.ZarfPackage{
 			Kind: types.ZarfInitConfig,
 			Metadata: types.ZarfMetadata{
 				Name: "invalid",
