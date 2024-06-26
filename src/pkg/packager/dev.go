@@ -121,7 +121,7 @@ func (p *Packager) Lint(ctx context.Context) error {
 		return err
 	}
 
-	findings, err := lint.Validate(ctx, p.cfg.CreateOpts)
+	findings, err := lint.Validate(ctx, p.cfg.Pkg, p.cfg.CreateOpts)
 	if err != nil {
 		return fmt.Errorf("linting failed: %w", err)
 	}

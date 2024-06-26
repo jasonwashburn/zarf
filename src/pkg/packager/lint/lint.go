@@ -26,13 +26,9 @@ import (
 // ZarfSchema is exported so main.go can embed the schema file
 var ZarfSchema fs.ReadFileFS
 
-// Validate validates a zarf file
-func Validate(ctx context.Context, createOpts types.ZarfCreateOptions) ([]types.PackageFinding, error) {
-	var pkg types.ZarfPackage
+// Validate the given Zarf package. The Zarf package should not already be composed when sent to this function.
+func Validate(ctx context.Context, pkg types.ZarfPackage, createOpts types.ZarfCreateOptions) ([]types.PackageFinding, error) {
 	var findings []types.PackageFinding
-	if err := utils.ReadYaml(layout.ZarfYAML, &pkg); err != nil {
-		return nil, err
-	}
 	compFindings, err := lintComponents(ctx, pkg, createOpts)
 	if err != nil {
 		return nil, err
