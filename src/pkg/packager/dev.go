@@ -19,6 +19,7 @@ import (
 	"github.com/defenseunicorns/zarf/src/pkg/packager/creator"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/filters"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/lint"
+	"github.com/defenseunicorns/zarf/src/pkg/utils"
 	"github.com/defenseunicorns/zarf/src/types"
 	"github.com/fatih/color"
 )
@@ -112,10 +113,12 @@ func (p *Packager) DevDeploy(ctx context.Context) error {
 
 // Lint ensures a package is valid & follows suggested conventions
 func (p *Packager) Lint(ctx context.Context) error {
-	config.CommonOptions.Confirm = true
-
 	if err := os.Chdir(p.cfg.CreateOpts.BaseDir); err != nil {
 		return fmt.Errorf("unable to access directory %q: %w", p.cfg.CreateOpts.BaseDir, err)
+	}
+
+	if err := utils.ReadYaml(layout.ZarfYAML, &p.cfg.Pkg); err != nil {
+		return err
 	}
 
 	findings, err := lint.Validate(ctx, p.cfg.CreateOpts)
