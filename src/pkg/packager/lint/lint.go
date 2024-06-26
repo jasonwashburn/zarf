@@ -90,8 +90,8 @@ func lintComponents(ctx context.Context, pkg types.ZarfPackage, createOpts types
 }
 
 func fillComponentTemplate(c *types.ZarfComponent, createOpts *types.ZarfCreateOptions) []types.PackageFinding {
-	err := creator.ReloadComponentTemplate(c)
 	var findings []types.PackageFinding
+	err := creator.ReloadComponentTemplate(c)
 	if err != nil {
 		findings = append(findings, types.PackageFinding{
 			Description: err.Error(),
