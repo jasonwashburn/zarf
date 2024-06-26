@@ -21,9 +21,7 @@ func readAndUnmarshalYaml[T interface{}](t *testing.T, yamlString string) T {
 	t.Helper()
 	var unmarshalledYaml T
 	err := goyaml.Unmarshal([]byte(yamlString), &unmarshalledYaml)
-	if err != nil {
-		t.Errorf("error unmarshalling yaml: %v", err)
-	}
+	require.NoError(t, err)
 	return unmarshalledYaml
 }
 
@@ -32,9 +30,7 @@ func TestZarfSchema(t *testing.T) {
 	getZarfSchema := func(t *testing.T) []byte {
 		t.Helper()
 		file, err := os.ReadFile("../../../../zarf.schema.json")
-		if err != nil {
-			t.Errorf("error reading file: %v", err)
-		}
+		require.NoError(t, err)
 		return file
 	}
 
