@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/defenseunicorns/pkg/helpers/v2"
@@ -19,6 +20,7 @@ import (
 	"github.com/defenseunicorns/zarf/src/pkg/packager/filters"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/lint"
 	"github.com/defenseunicorns/zarf/src/types"
+	"github.com/fatih/color"
 )
 
 // DevDeploy creates + deploys a package in one shot
@@ -131,7 +133,7 @@ func (p *Packager) Lint(ctx context.Context) (err error) {
 		return err
 	}
 
-	lintFindings, err := lint.Validate(ctx, p.cfg.CreateOpts)
+	lintFindings, err := lint.Validate(ctx, p.cfg.Pkg, p.cfg.CreateOpts)
 	if err != nil {
 		return fmt.Errorf("linting failed: %w", err)
 	}
@@ -142,11 +144,48 @@ func (p *Packager) Lint(ctx context.Context) (err error) {
 		return nil
 	}
 
-	lint.PrintFindings(p.warnings, types.SevWarn, p.cfg.CreateOpts.BaseDir, p.cfg.Pkg.Metadata.Name)
+	mapOfFindingsByPath := lint.GroupFindingsByPath(p.warnings, types.SevWarn, p.cfg.Pkg.Metadata.Name)
 
-	if lint.HasErrors(p.warnings) {
+	header := []string{"Type", "Path", "Message"}
+
+	for _, findings := range mapOfFindingsByPath {
+		lintData := [][]string{}
+		for _, finding := range findings {
+			lintData = append(lintData, []string{
+				colorWrapSev(finding.Severity),
+				message.ColorWrap(finding.YqPath, color.FgCyan),
+				itemizedDescription(finding.Description, finding.Item),
+			})
+		}
+		var packagePathFromUser string
+		if helpers.IsOCIURL(findings[0].PackagePathOverride) {
+			packagePathFromUser = findings[0].PackagePathOverride
+		} else {
+			packagePathFromUser = filepath.Join(p.cfg.CreateOpts.BaseDir, findings[0].PackagePathOverride)
+		}
+		message.Notef("Linting package %q at %s", findings[0].PackageNameOverride, packagePathFromUser)
+		message.Table(header, lintData)
+	}
+
+	if lint.HasSeverity(p.warnings, types.SevErr) {
 		return errors.New("errors during lint")
 	}
 
 	return nil
+}
+
+func itemizedDescription(description string, item string) string {
+	if item == "" {
+		return description
+	}
+	return fmt.Sprintf("%s - %s", description, item)
+}
+
+func colorWrapSev(s types.Severity) string {
+	if s == types.SevErr {
+		return message.ColorWrap("Error", color.FgRed)
+	} else if s == types.SevWarn {
+		return message.ColorWrap("Warning", color.FgYellow)
+	}
+	return "unknown"
 }

@@ -6,6 +6,7 @@ package creator
 
 import (
 	"context"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -22,6 +23,11 @@ type mockSchemaLoader struct {
 
 func (m *mockSchemaLoader) ReadFile(_ string) ([]byte, error) {
 	return m.b, nil
+}
+
+// Satisfy fs.ReadFileFS interface
+func (m *mockSchemaLoader) Open(_ string) (fs.File, error) {
+	return nil, nil
 }
 
 func TestLoadPackageDefinitionWithValidate(t *testing.T) {
@@ -43,12 +49,6 @@ func TestLoadPackageDefinitionWithValidate(t *testing.T) {
 			name:        "invalid package definition",
 			testDir:     "invalid",
 			expectedErr: "found errors in package",
-			creator:     NewPackageCreator(types.ZarfCreateOptions{}, ""),
-		},
-		{
-			name:        "invalid package definition but no validate schema",
-			testDir:     "invalid",
-			expectedErr: "",
 			creator:     NewPackageCreator(types.ZarfCreateOptions{}, ""),
 		},
 		{

@@ -23,20 +23,20 @@ func validate(ctx context.Context, createOpts types.ZarfCreateOptions, pkg types
 		return fmt.Errorf("package validation failed: %w", err)
 	}
 
-	findings, err := lint.Validate(ctx, createOpts)
+	findings, err := lint.Validate(ctx, pkg, createOpts)
 	if err != nil {
 		return fmt.Errorf("unable to lint package: %w", err)
 	}
 
-	lint.PrintFindings(findings, types.SevErr, createOpts.BaseDir, pkg.Metadata.Name)
-	if lint.HasErrors(findings) {
+	// lint.PrintFindings(findings, types.SevErr, createOpts.BaseDir, pkg.Metadata.Name)
+	if lint.HasSeverity(findings, types.SevErr) {
 		return fmt.Errorf("found errors in package")
 	}
 
 	return nil
 }
 
-func loadWithValidate(ctx context.Context, c Creator, src *layout.PackagePaths) (types.ZarfPackage, []types.PackageError, error) {
+func loadWithValidate(ctx context.Context, c Creator, src *layout.PackagePaths) (types.ZarfPackage, []types.PackageFinding, error) {
 	pkg, warnings, err := c.LoadPackageDefinition(ctx, src)
 	if err != nil {
 		return types.ZarfPackage{}, nil, err

@@ -254,7 +254,10 @@ var devLintCmd = &cobra.Command{
 		pkgConfig.CreateOpts.SetVariables = helpers.TransformAndMergeMap(
 			v.GetStringMapString(common.VPkgCreateSet), pkgConfig.CreateOpts.SetVariables, strings.ToUpper)
 
-		pkgClient := packager.NewOrDie(&pkgConfig)
+		pkgClient, err := packager.New(&pkgConfig)
+		if err != nil {
+			return err
+		}
 		defer pkgClient.ClearTempPaths()
 
 		return pkgClient.Lint(cmd.Context())

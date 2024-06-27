@@ -74,29 +74,3 @@ type ZarfBuildData struct {
 	LastNonBreakingVersion     string            `json:"lastNonBreakingVersion,omitempty" jsonschema:"description=The minimum version of Zarf that does not have breaking package structure changes"`
 	Flavor                     string            `json:"flavor,omitempty" jsonschema:"description=The flavor of Zarf used to build this package"`
 }
-
-// PackageError is a struct that contains a finding about something wrong with a package
-type PackageError struct {
-	// YqPath is the path to the key where the error originated from, this is sometimes empty in the case of a general error
-	YqPath      string
-	Description string
-	// Item is the value of a key that is causing an error, for example a bad image name
-	Item string
-	// PackageNameOverride is used in the case of composition to let the user know which package the error originated from
-	// If it is not set the base package will be used when displaying the error
-	PackageNameOverride string
-	// PackageNameOverride is used in the case of composition to let the user know which package the error originated from
-	// If it is not set the base package will be used when displaying the error
-	PackagePathOverride string
-	Category            Severity
-}
-
-// Severity is the type of package error
-// Either Err or Warning
-type Severity int
-
-// different severities of package errors
-const (
-	SevErr Severity = iota
-	SevWarn
-)

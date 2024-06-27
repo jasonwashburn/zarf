@@ -43,7 +43,7 @@ func TestLint(t *testing.T) {
 		// Testing the import / compose on lint is working
 		require.Contains(t, strippedStderr, ".components.[1].images.[0] | Image not pinned with digest - registry.com:9001/whatever/image:latest")
 		// Testing import / compose + variables are working
-		require.Contains(t, strippedStderr, ".components.[2].images.[2] | Image not pinned with digest - busybox:latest")
+		require.Contains(t, strippedStderr, ".components.[2].images.[3] | Image not pinned with digest - busybox:latest")
 		// Testing OCI imports get linted
 		require.Contains(t, strippedStderr, ".components.[0].images.[0] | Image not pinned with digest - defenseunicorns/zarf-game:multi-tile-dark")
 
