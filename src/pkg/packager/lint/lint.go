@@ -14,6 +14,7 @@ import (
 	"github.com/defenseunicorns/pkg/helpers/v2"
 	"github.com/defenseunicorns/zarf/src/config"
 	"github.com/defenseunicorns/zarf/src/config/lang"
+	"github.com/defenseunicorns/zarf/src/pkg/layout"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/composer"
 	"github.com/defenseunicorns/zarf/src/pkg/packager/creator"
 	"github.com/defenseunicorns/zarf/src/pkg/transform"
@@ -39,7 +40,12 @@ func Validate(ctx context.Context, pkg types.ZarfPackage, createOpts types.ZarfC
 		return nil, err
 	}
 
-	schemaFindings, err := validateSchema(jsonSchema, pkg)
+	var untypedZarfPackage interface{}
+	if err := utils.ReadYaml(layout.ZarfYAML, &untypedZarfPackage); err != nil {
+		return nil, err
+	}
+
+	schemaFindings, err := validateSchema(jsonSchema, untypedZarfPackage)
 	if err != nil {
 		return nil, err
 	}
